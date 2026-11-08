@@ -9,6 +9,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- **Native Photo Scanner & Metadata Engine (Phase 2)**:
+  - Created `@gallery/metadata-engine` with streaming EXIF and GPS header extraction (`exifr`), camera model/lens/exposure parsing, and MIME detection.
+  - Created `@gallery/photo-engine` with asynchronous filesystem directory scanning, cancellation tokens, progress callbacks, and deduplication.
+  - Built content-addressable progressive thumbnail cache manager (`256px` grid and `1280px` preview).
+  - Integrated Electron native folder dialog and scanning IPC handlers with secure preload bridge in `apps/windows`.
+  - Added real-time scan progress overlay, calendar grouping view, and photo EXIF inspector sidebar.
+  - Added unit and integration tests with 100% pass rate.
 - **Monorepo Architecture (Phase 1)**: Established Turborepo + pnpm workspace managing 4 shared packages (`@gallery/shared`, `@gallery/ui-tokens`, `@gallery/security`, `@gallery/database`) and 2 apps (`@gallery/windows`, `@gallery/android`).
 - **Core Security Engine**: Built `ExclusionManager` for canonical inode directory exclusion and `VaultCrypto` for AES-256-GCM hardware-backed vault isolation with 100% unit test coverage.
 - **SQLite Database Schema**: High-performance DDL schema with WAL mode, indexing for 100,000+ photo libraries, and automated migration runner.

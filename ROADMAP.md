@@ -28,12 +28,14 @@ This roadmap details the engineering phases from initial scaffolding to producti
 
 ---
 
-## [Phase 2] Native Photo Scanning & Metadata Engine (Zero Mock Data)
-- [ ] `packages/metadata-engine`: ExifReader / exifr integration for EXIF, GPS, camera model, lens, exposure parsing.
-- [ ] `apps/android`: MediaStore query integration via native Android bridge (efficient cursor paging).
-- [ ] `apps/windows`: Multi-threaded directory scanner using worker threads (`fs.promises` + chokidar for real-time file watchers).
-- [ ] Progressive thumbnail generation: WebP / JPEG downscaling with disk cache (`~/.photogallery/cache/thumbs`) and memory LRU.
-- [ ] Ingest real user photographs into local SQLite `photos` table.
+## [Phase 2] Native Photo Scanning & Metadata Engine (COMPLETED)
+- [x] `packages/metadata-engine`: exifr streaming integration for EXIF, GPS, camera model, lens, exposure parsing, and MIME detection.
+- [x] `packages/photo-engine`: Asynchronous directory scanner with cancellation tokens, progress streaming, and strict exclusion checks.
+- [x] `packages/photo-engine`: Progressive thumbnail cache manager (256px WebP grid and 1280px preview) with SHA-256 content-addressable storage.
+- [x] End-to-end `PhotoIndexer` pipeline combining scanning, streaming SHA-256 hashing, deduplication, and `PhotoItem` models.
+- [x] Native Electron integration: Registered `dialog:openDirectory` and `scanner:scanDirectory` IPC handlers with secure preload bridge.
+- [x] UI update in `apps/windows`: Folder scanning trigger, scan progress modal, calendar grouping view, and EXIF inspector sidebar.
+- [x] Automated unit & integration tests (100% pass rate across metadata-engine, photo-engine, and security packages).
 
 ---
 

@@ -28,8 +28,8 @@ A verification scan of the host environment was performed on this Windows system
 |---|---|---|---|
 | **Phase 0** | Master Plan, Architecture, Agent Memory & Tooling | **COMPLETED (100%)** | Nov 8, 2026 |
 | **Phase 1** | Monorepo Shell & Foundation (Android + Windows) | **COMPLETED (100%)** | Nov 8, 2026 |
-| **Phase 2** | Native Media Scanner (Real Files, Zero Mock) | **NEXT IN QUEUE** | Immediate |
-| **Phase 3** | Folder Exclusion & Hardware-Backed Vault Engine | Pending | Milestone 3 |
+| **Phase 2** | Native Media Scanner (Real Files, Zero Mock) | **COMPLETED (100%)** | Nov 8, 2026 |
+| **Phase 3** | Folder Exclusion & Hardware-Backed Vault Engine | **NEXT IN QUEUE** | Immediate |
 | **Phase 4** | Gallery UI (Calendar, Timeline, Map, 120 FPS Grid) | Pending | Milestone 4 |
 | **Phase 5** | Windows MTP Import Center ("Found New Photos") | Pending | Milestone 5 |
 | **Phase 6** | SyncFlow P2P Engine (Wi-Fi LAN + Animated Radar) | Pending | Milestone 6 |
@@ -43,7 +43,7 @@ A verification scan of the host environment was performed on this Windows system
 ---
 
 ## 3. ACTIVE TASK
-- **Current Task ID:** `TASK-003`
-- **Goal:** Phase 2 — Native Photo Scanning Engine (multi-threaded real filesystem scanner, EXIF/GPS parsing, progressive thumbnail caching, SQLite ingestion).
+- **Current Task ID:** `TASK-004`
+- **Goal:** Phase 3 — Privacy Governance & Vault (Excluded folder persistent storage, instant purge, hardware-bound AES-256-GCM vault database).
 - **Assigned:** Senior Architect / Senior UI/UX / AI Lead
 

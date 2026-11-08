@@ -1,5 +1,6 @@
 /**
- * @gallery/shared - Cryptographic & Hashing Utilities
+ * @gallery/photo-engine - Cryptographic & Stream Hashing Utilities
+ * Node.js Stream-based SHA-256 for large media files.
  */
 
 import { createHash } from 'node:crypto';
@@ -24,4 +25,3 @@ export async function computeFileHash(filePath: string): Promise<string> {
 export function computeBufferHash(data: Buffer | string): string {
   return createHash('sha256').update(data).digest('hex');
 }
-
