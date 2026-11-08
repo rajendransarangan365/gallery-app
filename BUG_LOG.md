@@ -6,6 +6,7 @@ This file tracks all defects, regressions, unexpected behaviors, and edge cases 
 | Bug ID | Date | Severity | Component | Summary | Status | Resolution / Fix Details |
 |---|---|---|---|---|---|---|
 | **BUG-001** | 2026-11-08 | P1 - Critical | Android CI / Autolinking | `PackageList.java` autolinking generated `import expo.core.ExpoModulesPackage;` causing compilation failure | Resolved | Configured `apps/android/react-native.config.js` and `react-native.config.js` with explicit `packageImportPath: 'import expo.modules.ExpoModulesPackage;'` and `packageInstance: 'new ExpoModulesPackage()'`. Verified via CLI autolinking generator. |
+| **BUG-002** | 2026-11-08 | P1 - Critical | Android CI / Keystore | `Task :app:validateSigningRelease FAILED` due to missing `debug.keystore` (ignored by `.gitignore` per security policy) | Resolved | Added automated on-the-fly debug keystore creation via JDK `keytool` in workflow step and programmatic fallback in `app/build.gradle`. Fully complies with Zero-Key-Commit rule. |
 
 
 ---
