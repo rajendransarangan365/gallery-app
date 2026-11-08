@@ -15,4 +15,16 @@ contextBridge.exposeInMainWorld('electronAPI', {
     ipcRenderer.on('scanner:progress', handler);
     return () => ipcRenderer.removeListener('scanner:progress', handler);
   },
+  // Vault APIs
+  vaultIsConfigured: (): Promise<boolean> => ipcRenderer.invoke('vault:isConfigured'),
+  vaultSetup: (pin: string): Promise<boolean> => ipcRenderer.invoke('vault:setup', pin),
+  vaultUnlock: (pin: string): Promise<boolean> => ipcRenderer.invoke('vault:unlock', pin),
+  vaultLock: (): Promise<boolean> => ipcRenderer.invoke('vault:lock'),
+  vaultList: (): Promise<any[]> => ipcRenderer.invoke('vault:list'),
+  vaultImport: (filePath: string): Promise<any> => ipcRenderer.invoke('vault:import', filePath),
+  vaultExport: (itemId: string, destDir: string): Promise<string> => ipcRenderer.invoke('vault:export', itemId, destDir),
+  // Exclusion APIs
+  exclusionsList: (): Promise<any[]> => ipcRenderer.invoke('exclusions:list'),
+  exclusionsAdd: (folderPath: string): Promise<any> => ipcRenderer.invoke('exclusions:add', folderPath),
+  exclusionsRemove: (folderPath: string): Promise<boolean> => ipcRenderer.invoke('exclusions:remove', folderPath),
 });

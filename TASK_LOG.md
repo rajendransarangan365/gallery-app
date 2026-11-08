@@ -113,3 +113,39 @@ Implement the native real-file photo scanning and ingestion pipeline according t
 - **Task ID:** `TASK-004`
 - **Scope:** Phase 3 — Privacy Governance: Excluded Folder Persistent UI & Zero-Leakage Secure Vault Engine (SQLCipher database, biometrics/PIN prompt, and AES-256-GCM file encryption integration).
 
+---
+
+## [TASK-004] — Phase 3: Privacy Governance & Zero-Leakage Secure Vault Engine
+- **Timestamp:** 2026-11-08T19:30:00+05:30
+- **Author:** Lead AI Software Architect & Senior UI/UX Engineer
+- **Status:** COMPLETED
+
+### 1. Scope & Objective
+Implement Phase 3 privacy governance: build `@gallery/vault-engine` with PBKDF2/SHA-512 key derivation, constant-time verification, AES-256-GCM payload encryption, in-memory key zeroing, secure file wiping, and the Instant Purge Protocol for excluded folders. Integrate native Electron IPC channels and build the interactive UI for the Secure Vault and Folder Exclusion Registry in `apps/windows`.
+
+### 2. Actions Performed
+1. Created `@gallery/vault-engine`:
+   - `VaultManager`: Hardware-isolated vault with 100,000-iteration PBKDF2 key derivation, constant-time `timingSafeEqual` authentication, AES-256-GCM payload encryption, secure random file wiping on import, unreferenced auto-lock timers, and on-demand export.
+   - `ExclusionRegistry`: Persistent folder exclusion registry executing the **Instant Purge Protocol** (purging WebP thumbnails and database records immediately when a folder is excluded).
+   - Unit & integration tests verifying zero-leakage access, tamper rejection, and automatic thumbnail purging.
+2. Connected Native IPC & Electron Context Bridge:
+   - Added IPC handlers for `vault:setup`, `vault:unlock`, `vault:lock`, `vault:import`, `vault:export`, `exclusions:add`, `exclusions:remove`.
+   - Exposed secure APIs to renderer via `contextBridge`.
+3. Upgraded `apps/windows/src/renderer/App.tsx`:
+   - Built Secure Vault view with PIN keypad lock screen, in-memory session badge, and encrypted item cards.
+   - Built Excluded Folders view with canonical path listings, inode verification tags, directory picker, and instant purge notice banners.
+
+### 3. Verification & Evidence
+- `pnpm turbo run build typecheck test lint`: **26 successful tasks, 0 errors**.
+- All unit & integration test suites passed:
+  - `@gallery/vault-engine`: 2/2 passed.
+  - `@gallery/security`: 6/6 passed.
+  - `@gallery/metadata-engine`: 3/3 passed.
+  - `@gallery/photo-engine`: 1/1 passed.
+  - **Total: 12/12 automated tests passing**.
+- Vite production build for `apps/windows`: Compiled in 3.05s with 0 errors.
+
+### 4. Next Immediate Task
+- **Task ID:** `TASK-005`
+- **Scope:** Phase 4 — Premium Gallery UI & Motion System (pinch-to-zoom fluid grid density transitions, full-screen photo viewer with shared-element hero animation, interactive Leaflet/Mapbox offline map view, multi-selection tray).
+

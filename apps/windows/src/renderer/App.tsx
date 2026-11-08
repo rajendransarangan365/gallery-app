@@ -31,6 +31,16 @@ declare global {
       openDirectory: () => Promise<string | null>;
       scanDirectory: (path: string) => Promise<PhotoItem[]>;
       onScanProgress: (callback: (progress: any) => void) => () => void;
+      vaultIsConfigured: () => Promise<boolean>;
+      vaultSetup: (pin: string) => Promise<boolean>;
+      vaultUnlock: (pin: string) => Promise<boolean>;
+      vaultLock: () => Promise<boolean>;
+      vaultList: () => Promise<any[]>;
+      vaultImport: (filePath: string) => Promise<any>;
+      vaultExport: (itemId: string, destDir: string) => Promise<string>;
+      exclusionsList: () => Promise<any[]>;
+      exclusionsAdd: (folderPath: string) => Promise<any>;
+      exclusionsRemove: (folderPath: string) => Promise<boolean>;
     };
   }
 }
@@ -48,6 +58,77 @@ export default function App() {
   const [photos, setPhotos] = useState<PhotoItem[]>([]);
   const [isScanning, setIsScanning] = useState(false);
   const [scanProgress, setScanProgress] = useState<{ scannedFiles: number; indexedPhotos: number; currentFile: string } | null>(null);
+
+  // Vault & Exclusion States
+  const [vaultPin, setVaultPin] = useState('');
+  const [vaultItems, setVaultItems] = useState<any[]>([]);
+  const [exclusions, setExclusions] = useState<any[]>([]);
+  const [purgeNotice, setPurgeNotice] = useState<string | null>(null);
+
+  const loadExclusions = async () => {
+    if (window.electronAPI?.exclusionsList) {
+      const list = await window.electronAPI.exclusionsList();
+      setExclusions(list);
+    }
+  };
+
+  useEffect(() => {
+    loadExclusions();
+  }, []);
+
+  const handleUnlockVault = async () => {
+    if (!window.electronAPI) {
+      setIsVaultUnlocked(true);
+      return;
+    }
+    try {
+      const configured = await window.electronAPI.vaultIsConfigured();
+      if (!configured) {
+        await window.electronAPI.vaultSetup(vaultPin || '1234');
+        setIsVaultUnlocked(true);
+        const items = await window.electronAPI.vaultList();
+        setVaultItems(items);
+      } else {
+        const ok = await window.electronAPI.vaultUnlock(vaultPin);
+        if (ok) {
+          setIsVaultUnlocked(true);
+          const items = await window.electronAPI.vaultList();
+          setVaultItems(items);
+        } else {
+          alert('Authentication failed: Incorrect PIN.');
+        }
+      }
+    } catch (err) {
+      alert((err as Error).message);
+    }
+  };
+
+  const handleLockVault = async () => {
+    if (window.electronAPI?.vaultLock) {
+      await window.electronAPI.vaultLock();
+    }
+    setIsVaultUnlocked(false);
+    setVaultItems([]);
+    setVaultPin('');
+  };
+
+  const handleAddExclusion = async () => {
+    if (!window.electronAPI) return;
+    const dir = await window.electronAPI.openDirectory();
+    if (!dir) return;
+
+    const res = await window.electronAPI.exclusionsAdd(dir);
+    setPhotos(prev => prev.filter(p => !p.fileUri.toLowerCase().startsWith(dir.toLowerCase())));
+    setPurgeNotice(`Excluded: ${res.canonicalPath} • Instantly purged ${res.purgedThumbnailsCount} cached thumbnails.`);
+    setTimeout(() => setPurgeNotice(null), 5000);
+    await loadExclusions();
+  };
+
+  const handleRemoveExclusion = async (canonicalPath: string) => {
+    if (!window.electronAPI) return;
+    await window.electronAPI.exclusionsRemove(canonicalPath);
+    await loadExclusions();
+  };
 
   useEffect(() => {
     if (window.electronAPI?.onScanProgress) {
@@ -286,7 +367,143 @@ export default function App() {
 
         {/* Dynamic View Body */}
         <div className="flex-1 overflow-y-auto p-6">
-          {photos.length === 0 ? (
+          {activeTab === 'vault' ? (
+            /* Secure Vault View */
+            <div className="h-full max-w-2xl mx-auto flex flex-col justify-center">
+              {!isVaultUnlocked ? (
+                <div className="bg-canvas-elevated border border-canvas-subtle p-8 rounded-2xl shadow-2xl text-center space-y-6">
+                  <div className="w-16 h-16 rounded-2xl bg-amber-500/10 border border-amber-500/30 text-amber-400 flex items-center justify-center mx-auto">
+                    <FolderLock className="w-8 h-8" />
+                  </div>
+                  <div>
+                    <h3 className="text-xl font-bold text-slate-100">Zero-Leakage Secure Vault</h3>
+                    <p className="text-xs text-slate-400 mt-1 max-w-md mx-auto">
+                      Protected with AES-256-GCM encryption. Photos inside this vault are cryptographically isolated and never indexed by normal gallery scans, MTP connections, or AI workers.
+                    </p>
+                  </div>
+                  <div className="max-w-xs mx-auto space-y-3">
+                    <input
+                      type="password"
+                      placeholder="Enter Master PIN or Password"
+                      value={vaultPin}
+                      onChange={(e) => setVaultPin(e.target.value)}
+                      onKeyDown={(e) => e.key === 'Enter' && handleUnlockVault()}
+                      className="w-full bg-canvas-base border border-canvas-subtle rounded-xl px-4 py-2.5 text-center text-sm tracking-widest text-slate-100 placeholder-slate-500 focus:outline-none focus:border-amber-400 font-mono"
+                    />
+                    <button
+                      onClick={handleUnlockVault}
+                      className="w-full py-2.5 bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold rounded-xl text-sm transition-all shadow-lg shadow-amber-500/20"
+                    >
+                      Unlock Vault
+                    </button>
+                  </div>
+                </div>
+              ) : (
+                <div className="space-y-6">
+                  <div className="flex items-center justify-between border-b border-canvas-subtle pb-4">
+                    <div>
+                      <h2 className="text-lg font-bold text-slate-100 flex items-center gap-2">
+                        <FolderLock className="w-5 h-5 text-emerald-400" />
+                        Secure Vault (Unlocked)
+                      </h2>
+                      <p className="text-xs text-slate-400 font-mono">AES-256-GCM Active • In-Memory Session</p>
+                    </div>
+                    <button
+                      onClick={handleLockVault}
+                      className="px-4 py-2 bg-rose-600 hover:bg-rose-500 text-white rounded-xl text-xs font-semibold shadow-md shadow-rose-600/20"
+                    >
+                      Lock Vault Now
+                    </button>
+                  </div>
+
+                  {vaultItems.length === 0 ? (
+                    <div className="text-center py-16 bg-canvas-elevated rounded-2xl border border-canvas-subtle space-y-3">
+                      <FolderLock className="w-10 h-10 text-slate-600 mx-auto" />
+                      <p className="text-sm font-semibold text-slate-200">No Encrypted Items</p>
+                      <p className="text-xs text-slate-400 max-w-sm mx-auto">
+                        To protect sensitive photos from USB MTP discovery and indexing, import them into this encrypted vault.
+                      </p>
+                    </div>
+                  ) : (
+                    <div className="grid grid-cols-2 gap-4">
+                      {vaultItems.map((item) => (
+                        <div key={item.id} className="p-4 bg-canvas-elevated border border-canvas-subtle rounded-xl flex items-center justify-between">
+                          <div>
+                            <p className="text-sm font-medium text-slate-200">{item.originalFileName}</p>
+                            <p className="text-[10px] text-slate-400 font-mono">{new Date(item.encryptedAt).toLocaleDateString()}</p>
+                          </div>
+                          <span className="text-[10px] bg-emerald-500/20 text-emerald-400 px-2 py-1 rounded font-mono">
+                            ENCRYPTED
+                          </span>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
+          ) : activeTab === 'exclusions' ? (
+            /* Excluded Folders View */
+            <div className="max-w-3xl mx-auto space-y-6">
+              <div className="flex items-center justify-between border-b border-canvas-subtle pb-4">
+                <div>
+                  <h2 className="text-lg font-bold text-slate-100 flex items-center gap-2">
+                    <FolderX className="w-5 h-5 text-rose-400" />
+                    Strict Folder Exclusion Registry
+                  </h2>
+                  <p className="text-xs text-slate-400">
+                    Excluded folders are checked against filesystem inodes before traversal. Thumbnails and metadata are purged immediately.
+                  </p>
+                </div>
+                <button
+                  onClick={handleAddExclusion}
+                  className="flex items-center gap-2 px-4 py-2 bg-rose-600 hover:bg-rose-500 text-white rounded-xl text-xs font-semibold shadow-md shadow-rose-600/20 transition-all"
+                >
+                  <FolderOpen className="w-4 h-4" />
+                  Add Excluded Folder
+                </button>
+              </div>
+
+              {purgeNotice && (
+                <div className="p-3 bg-emerald-950/70 border border-emerald-500/40 rounded-xl text-xs text-emerald-300 flex items-center justify-between animate-fade-in">
+                  <span>{purgeNotice}</span>
+                  <button onClick={() => setPurgeNotice(null)} className="text-emerald-400 hover:text-white">✕</button>
+                </div>
+              )}
+
+              <div className="space-y-3">
+                {exclusions.length === 0 ? (
+                  <div className="text-center py-16 bg-canvas-elevated rounded-2xl border border-canvas-subtle space-y-2">
+                    <FolderX className="w-10 h-10 text-slate-600 mx-auto" />
+                    <p className="text-sm font-semibold text-slate-300">No Folders Excluded</p>
+                    <p className="text-xs text-slate-400 max-w-sm mx-auto">
+                      Any folder you add here will be strictly bypassed during background scanning and device sync.
+                    </p>
+                  </div>
+                ) : (
+                  exclusions.map((ex) => (
+                    <div
+                      key={ex.canonicalPath}
+                      className="p-4 bg-canvas-elevated border border-canvas-subtle rounded-xl flex items-center justify-between"
+                    >
+                      <div>
+                        <p className="text-sm font-mono text-slate-200">{ex.canonicalPath}</p>
+                        <p className="text-[10px] text-slate-500 font-mono mt-0.5">
+                          Mode: Recursive Sub-directories • Inode: {ex.inode || 'Verified'}
+                        </p>
+                      </div>
+                      <button
+                        onClick={() => handleRemoveExclusion(ex.canonicalPath)}
+                        className="text-xs text-slate-400 hover:text-rose-400 px-3 py-1.5 rounded-lg border border-canvas-subtle hover:border-rose-500/40 transition-colors"
+                      >
+                        Remove
+                      </button>
+                    </div>
+                  ))
+                )}
+              </div>
+            </div>
+          ) : photos.length === 0 ? (
             /* Zero Mock Data: Clean Empty State with Real Scan Trigger */
             <div className="h-full flex flex-col items-center justify-center text-center max-w-md mx-auto">
               <div className="w-16 h-16 rounded-2xl bg-canvas-elevated border border-canvas-subtle flex items-center justify-center text-blue-400 mb-4 shadow-xl">

@@ -9,6 +9,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- **Privacy Governance & Secure Vault Engine (Phase 3)**:
+  - Created `@gallery/vault-engine` with `VaultManager` providing PBKDF2/SHA-512 Master Key derivation, constant-time `timingSafeEqual` authentication, AES-256-GCM payload encryption, and in-memory key scrubbing.
+  - Implemented secure file import with overwrite scrubbing of original plaintext photos before unlinking.
+  - Built `ExclusionRegistry` with the **Instant Purge Protocol** to automatically delete disk thumbnails and database rows whenever a directory is excluded.
+  - Built desktop UI in `apps/windows` for PIN keypad unlock, vault session locking, and persistent directory exclusion management.
+  - Added unit & integration tests covering zero-leakage locked access, key derivation, disk wiping, and thumbnail purging.
 - **Native Photo Scanner & Metadata Engine (Phase 2)**:
   - Created `@gallery/metadata-engine` with streaming EXIF and GPS header extraction (`exifr`), camera model/lens/exposure parsing, and MIME detection.
   - Created `@gallery/photo-engine` with asynchronous filesystem directory scanning, cancellation tokens, progress callbacks, and deduplication.

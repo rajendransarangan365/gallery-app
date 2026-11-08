@@ -8,12 +8,15 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { ExclusionManager } from '@gallery/security';
 import { PhotoIndexer } from '@gallery/photo-engine';
+import { VaultManager, ExclusionRegistry } from '@gallery/vault-engine';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 let mainWindow: BrowserWindow | null = null;
 const exclusionManager = new ExclusionManager();
+const vaultManager = new VaultManager();
+const exclusionRegistry = new ExclusionRegistry(exclusionManager);
 
 function createWindow() {
   mainWindow = new BrowserWindow({
@@ -65,6 +68,38 @@ app.whenReady().then(() => {
         mainWindow?.webContents.send('scanner:progress', progress);
       },
     });
+  });
+
+  // Vault IPC Handlers
+  ipcMain.handle('vault:isConfigured', () => vaultManager.isConfigured());
+  ipcMain.handle('vault:setup', async (_event: unknown, pin: string) => {
+    await vaultManager.setupVault(pin);
+    return true;
+  });
+  ipcMain.handle('vault:unlock', async (_event: unknown, pin: string) => {
+    return vaultManager.unlock(pin);
+  });
+  ipcMain.handle('vault:lock', () => {
+    vaultManager.lock();
+    return true;
+  });
+  ipcMain.handle('vault:list', async () => {
+    return vaultManager.listItems();
+  });
+  ipcMain.handle('vault:import', async (_event: unknown, filePath: string) => {
+    return vaultManager.importPhoto(filePath);
+  });
+  ipcMain.handle('vault:export', async (_event: unknown, itemId: string, destDir: string) => {
+    return vaultManager.exportPhoto(itemId, destDir);
+  });
+
+  // Exclusion IPC Handlers
+  ipcMain.handle('exclusions:list', () => exclusionRegistry.listExclusions());
+  ipcMain.handle('exclusions:add', async (_event: unknown, folderPath: string) => {
+    return exclusionRegistry.addExclusionAndPurge(folderPath, []);
+  });
+  ipcMain.handle('exclusions:remove', (_event: unknown, folderPath: string) => {
+    return exclusionRegistry.removeExclusion(folderPath);
   });
 
   app.on('activate', () => {

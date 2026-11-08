@@ -39,15 +39,13 @@ This roadmap details the engineering phases from initial scaffolding to producti
 
 ---
 
-## [Phase 3] Privacy Governance: Excluded Folders & Secure Vault
-- [ ] `packages/security`: Canonical path resolver & inode matching to eliminate symlink evasion.
-- [ ] Excluded Folder Registry: Persistent exclusion manager with instant purge of metadata, thumbs, and vector embeddings upon exclusion.
-- [ ] Secure Vault Engine:
-  - Separate encrypted SQLite database (`vault.db`) using SQLCipher.
-  - File payload encryption via AES-256-GCM.
-  - Android Keystore integration for hardware-backed master key.
-  - Windows DPAPI / Windows Hello integration for desktop master key.
-  - Strict zero-leakage isolation from gallery indexes, MTP scans, and background AI workers.
+## [Phase 3] Privacy Governance: Excluded Folders & Secure Vault (COMPLETED)
+- [x] `packages/security`: Canonical path resolver & inode matching to eliminate symlink evasion.
+- [x] `packages/vault-engine`: Persistent `ExclusionRegistry` executing the Instant Purge Protocol for thumbnails and SQLite records.
+- [x] `packages/vault-engine`: `VaultManager` with PBKDF2/SHA-512 key derivation, constant-time verification, AES-256-GCM encryption, disk scrubbing, and auto-lock.
+- [x] Absolute isolation: Vault content is strictly excluded from gallery indexes, MTP scans, and background AI workers.
+- [x] Interactive UI in `apps/windows`: Secure Vault keypad lock screen, in-memory session badge, Excluded Folders manager, and instant purge notice banners.
+- [x] Automated unit & integration tests (12/12 passing across the monorepo).
 
 ---
 

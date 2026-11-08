@@ -230,6 +230,9 @@ importers:
       '@gallery/ui-tokens':
         specifier: workspace:*
         version: link:../../packages/ui-tokens
+      '@gallery/vault-engine':
+        specifier: workspace:*
+        version: link:../../packages/vault-engine
       lucide-react:
         specifier: ^0.475.0
         version: 0.475.0(react@18.3.1)
@@ -345,6 +348,28 @@ importers:
         version: 5.9.3
 
   packages/ui-tokens:
+    devDependencies:
+      '@types/node':
+        specifier: ^22.13.10
+        version: 22.20.5
+      typescript:
+        specifier: ^5.8.2
+        version: 5.9.3
+
+  packages/vault-engine:
+    dependencies:
+      '@gallery/database':
+        specifier: workspace:*
+        version: link:../database
+      '@gallery/photo-engine':
+        specifier: workspace:*
+        version: link:../photo-engine
+      '@gallery/security':
+        specifier: workspace:*
+        version: link:../security
+      '@gallery/shared':
+        specifier: workspace:*
+        version: link:../shared
     devDependencies:
       '@types/node':
         specifier: ^22.13.10
