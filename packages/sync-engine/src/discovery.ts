@@ -154,3 +154,4 @@ export class DiscoveryManager extends EventEmitter {
     this.cleanupInterval.unref();
   }
 }
+

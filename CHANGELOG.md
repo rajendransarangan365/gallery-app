@@ -8,39 +8,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-## Version 1.0.0 — 2026-11-08
-
-### 🚀 New Features
-- **editor**: implement non-destructive studio editor, GPU shaders, memories, and social share (`5511c42`)
-- **ai**: implement local face clustering, semantic search, and photo of the month aesthetic analyzer (`6952b0e`)
-- **sync**: implement SyncFlow P2P engine, animated radar discovery, QR pairing, and 2-way delta sync (`a38358b`)
-- **mtp**: implement Windows MTP phone import center, WPD device detection, and streaming transfer (`565d4d2`)
-- **ui**: integrate fullscreen viewer, interactive map view, timeline scrubber, and multi-select tray (`1f03314`)
-- **vault-engine**: implement AES-256-GCM zero-leakage vault and instant purge exclusion registry (`742d00e`)
-- **photo-engine**: implement native file scanner, streaming EXIF extractor, and thumbnail caching (`9c37922`)
-- **monorepo**: scaffold Turborepo workspace, shared packages, and application shells (`9a3fe1b`)
-- **core**: initialize master architecture, AI memory system, and CI/CD release pipeline (`85834d3`)
-
-### 📚 Documentation
-- **task-log**: document successful push to private origin (`600337d`)
-
-### 📦 Release Assets
-- `PhotoGallery-Setup-1.0.0.exe` (Windows 10/11 x64 Installer)
-- `PhotoGallery-1.0.0.apk` (Android Universal Release APK)
-- `SHA256SUMS.txt` (Cryptographic Checksums)
-
-
-
 ### Added
-- **Creative Studio Non-Destructive Editor & Social Share (Phases 9 & 10)**:
-  - Created `@gallery/editor-engine` package delivering mathematical non-destructive image editing recipes, WebGL2/Skia GPU shader uniforms, algorithmic memories, and native social share dispatchers.
-  - Implemented `createDefaultRecipe`, `applyPreset`, and `validateRecipe` with 12 mathematical tone parameters: Exposure (EV stops), Contrast, Highlights, Shadows, Whites, Blacks, Temperature, Tint, Vibrance, Saturation, Vignette, and Film Grain.
-  - Built built-in professional photographic presets: "Vivid Pop", "Warm Sunset", "Classic B&W", "Moody Teal & Orange", and "Soft Portrait".
-  - Authored WebGL2 GPU fragment shader with power-of-2 EV exposure mapping, mid-gray luminance contrast, temperature/tint white balance matrix, smoothstep radial vignette, and procedural pseudo-random film grain generation.
-  - Implemented `MemoryGenerator` producing nostalgic "On This Day" rediscovery stories (1-year, 2-year, 5-year intervals) and "Month in Review" highlight reels with zero mock data.
-  - Implemented `SocialShareManager` for formatted deep-link social sharing across WhatsApp, Telegram, Twitter/X, and Web Share API / clipboard fallback.
-  - Built `StudioEditorModal.tsx` in `apps/windows` featuring live GPU canvas rendering, dual Before/After comparison hold toggle, real-time slider controls, preset carousel, and non-destructive export pipeline leaving original photos strictly untouched.
-  - Added unit test suite in `packages/editor-engine/test/editor.test.ts` verifying recipe initialization, preset bounds, uniform mapping, memory retrieval, and social link generation with 100% pass rate.
 - **Local On-Device AI Engine & "Photo of the Month" (Phases 7 & 8)**:
   - Created `@gallery/ai-engine` package implementing on-device face recognition, vector search, and aesthetic scoring with zero cloud dependencies or telemetry.
   - Implemented `FaceClusterer` computing cosine similarity between 512-dimensional ArcFace/MobileFaceNet embeddings, clustering detections into named Person albums, centroid updates, and cluster merging.

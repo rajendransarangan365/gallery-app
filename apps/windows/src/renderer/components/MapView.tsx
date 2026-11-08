@@ -139,3 +139,4 @@ export function MapView({ photos, onSelectPhoto }: MapViewProps) {
     </div>
   );
 }
+

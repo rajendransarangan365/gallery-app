@@ -90,32 +90,32 @@ This roadmap details the engineering phases from initial scaffolding to producti
 ---
 
 ## [Phase 9] Mobile Photoshop-Grade Image Editor
-- [x] Non-destructive edit recipe model (JSON parameter stack).
-- [x] Real-time GPU Shader preview (Skia shaders on Android, WebGL2 on Windows).
-- [x] Adjustments: Brightness, contrast, exposure, highlights, shadows, temperature, tint, vibrance.
-- [x] Advanced: HSL color mixer, RGB curves editor, crop & perspective transform, vignetting, grain.
-- [x] Full-resolution background export without ever altering original files.
+- [ ] Non-destructive edit recipe model (JSON parameter stack).
+- [ ] Real-time GPU Shader preview (Skia shaders on Android, WebGL2 on Windows).
+- [ ] Adjustments: Brightness, contrast, exposure, highlights, shadows, temperature, tint, vibrance.
+- [ ] Advanced: HSL color mixer, RGB curves editor, crop & perspective transform, vignetting, grain.
+- [ ] Full-resolution background export without ever altering original files.
 
 ---
 
 ## [Phase 10] Memories, Cinematic Slideshow & Social Sharing
-- [x] "On This Day" algorithmic memory generator (1 year ago, 5 years ago).
-- [x] Cinematic slideshow with Ken Burns zoom, cross-dissolve, and ambient background blur.
-- [x] Native Android Share Sheet integration (WhatsApp, Instagram Stories, Telegram).
-- [x] Windows Direct Share contract integration.
+- [ ] "On This Day" algorithmic memory generator (1 year ago, 5 years ago).
+- [ ] Cinematic slideshow with Ken Burns zoom, cross-dissolve, and ambient background blur.
+- [ ] Native Android Share Sheet integration (WhatsApp, Instagram Stories, Telegram).
+- [ ] Windows Direct Share contract integration.
 
 ---
 
 ## [Phase 11] Performance Hardening & Stress Testing
-- [x] Stress-test library with 10,000+ to 50,000+ real photos.
-- [x] Virtualized windowing (`@tanstack/react-virtual` / FlashList) for instantaneous scroll response.
-- [x] Memory leak audit: Garbage collection of off-screen WebP textures.
+- [ ] Stress-test library with 10,000+ to 50,000+ real photos.
+- [ ] Virtualized windowing (`@tanstack/react-virtual` / FlashList) for instantaneous scroll response.
+- [ ] Memory leak audit: Garbage collection of off-screen WebP textures.
 
 ---
 
 ## [Phase 12] Dual-Repository CI/CD Release Automation
-- [x] Set up GitHub Actions workflow in private repo.
-- [x] Automatic building of Windows `.exe` installer (NSIS) and Android `.apk`.
-- [x] Automated execution of `scripts/generate-release-notes.mjs`.
-- [x] Automated artifact publishing to public releases repository with SHA-256 checksums.
+- [ ] Set up GitHub Actions workflow in private repo.
+- [ ] Automatic building of Windows `.exe` installer (NSIS) and Android `.apk`.
+- [ ] Automated execution of `scripts/generate-release-notes.mjs`.
+- [ ] Automated artifact publishing to public releases repository with SHA-256 checksums.
 

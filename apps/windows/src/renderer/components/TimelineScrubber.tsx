@@ -43,3 +43,4 @@ export function TimelineScrubber({ years, activeYear, onSelectYear }: TimelineSc
     </aside>
   );
 }
+

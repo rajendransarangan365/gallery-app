@@ -79,3 +79,4 @@ describe('SocialShareManager - Deep Links', () => {
     assert.ok(waLink.startsWith('https://api.whatsapp.com'));
   });
 });
+

@@ -50,3 +50,4 @@ export interface PhotoOfTheMonth {
   totalCandidates: number;
   aiReasoning: string;
 }
+

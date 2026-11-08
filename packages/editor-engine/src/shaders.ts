@@ -102,3 +102,4 @@ export function mapAdjustmentsToUniforms(adj: BasicAdjustments): ShaderUniforms 
     grain: adj.grain / 100,
   };
 }
+

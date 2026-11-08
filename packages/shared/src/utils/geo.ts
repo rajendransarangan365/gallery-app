@@ -75,3 +75,4 @@ export function clusterPhotosByLocation(
 
   return clusters.sort((a, b) => b.photoCount - a.photoCount);
 }
+

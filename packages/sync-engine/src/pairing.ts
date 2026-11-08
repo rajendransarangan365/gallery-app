@@ -108,3 +108,4 @@ export class PairingManager {
     return this.trustedPeers.delete(deviceId);
   }
 }
+

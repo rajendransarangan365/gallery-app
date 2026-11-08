@@ -194,3 +194,4 @@ export function PeopleView({
     </div>
   );
 }
+

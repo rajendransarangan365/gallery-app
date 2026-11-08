@@ -7,7 +7,10 @@
   "main": "./dist-electron/main/index.js",
   "scripts": {
     "dev": "vite",
-    "build": "tsc --noEmit && vite build",
+    "build:ui": "vite build",
+    "build:electron": "tsc -p tsconfig.electron.json",
+    "build": "vite build && tsc -p tsconfig.electron.json",
+    "start": "electron .",
     "typecheck": "tsc --noEmit",
     "lint": "echo 'Windows app lint passed'",
     "test": "echo 'Windows app unit tests passed'"

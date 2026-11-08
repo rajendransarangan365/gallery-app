@@ -79,3 +79,4 @@ export class MemoryGenerator {
     return stories;
   }
 }
+

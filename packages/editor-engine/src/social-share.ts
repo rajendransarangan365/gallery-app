@@ -54,3 +54,4 @@ export class SocialShareManager {
     return false;
   }
 }
+

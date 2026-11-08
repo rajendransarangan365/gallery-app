@@ -7,4 +7,3 @@ export * from './thumbnail-cache.js';
 export * from './photo-indexer.js';
 export * from './hash.js';
 export * from './mtp.js';
-export * from './lru-cache.js';

@@ -35,7 +35,6 @@ import { SyncCenter } from './components/SyncCenter';
 import { PeopleView } from './components/PeopleView';
 import { PhotoOfTheMonthCard } from './components/PhotoOfTheMonthCard';
 import { StudioEditorModal } from './components/StudioEditorModal';
-import { VirtualizedPhotoGrid } from './components/VirtualizedPhotoGrid';
 import type { PersonCluster } from '@gallery/ai-engine';
 
 // Type declaration for Electron context bridge
@@ -558,7 +557,7 @@ export default function App() {
         )}
 
         {/* Dynamic View Body */}
-        <div className={`flex-1 ${activeTab === 'photos' && photos.length > 0 ? 'overflow-hidden flex flex-col p-4' : 'overflow-y-auto p-6'}`}>
+        <div className="flex-1 overflow-y-auto p-6">
           {activeTab === 'vault' ? (
             /* Secure Vault View */
             <div className="h-full max-w-2xl mx-auto flex flex-col justify-center">
@@ -785,31 +784,38 @@ export default function App() {
               })}
             </div>
           ) : (
-            /* Virtualized 60/120 FPS Standard Grid View */
-            <div className="flex-1 min-h-0 w-full h-full">
-              <VirtualizedPhotoGrid
-                photos={filteredPhotos}
-                columns={gridDensity}
-                selectedPhoto={selectedPhoto}
-                selectedPhotoIds={selectedPhotoIds}
-                headerSlot={
-                  <PhotoOfTheMonthCard
-                    photos={photos}
-                    onOpenFullscreen={(p) => setFullscreenPhoto(p)}
-                    onEditInStudio={(p) => {
-                      setSelectedPhoto(p);
-                      setIsEditorOpen(true);
-                    }}
-                  />
-                }
-                onSelect={(p) => setSelectedPhoto(p)}
-                onToggleSelect={(id, e) => handleToggleSelectPhoto(id, e)}
-                onToggleFavorite={(p, e) => {
-                  e.stopPropagation();
-                  handleToggleFavorite(p);
-                }}
+            /* Standard Grid View */
+            <div>
+              {/* Photo of the Month Showcase Card */}
+              <PhotoOfTheMonthCard
+                photos={photos}
                 onOpenFullscreen={(p) => setFullscreenPhoto(p)}
+                onEditInStudio={(p) => {
+                  setSelectedPhoto(p);
+                  setIsEditorOpen(true);
+                }}
               />
+
+              <div
+                className="grid gap-3"
+                style={{ gridTemplateColumns: `repeat(${gridDensity}, minmax(0, 1fr))` }}
+              >
+                {filteredPhotos.map((photo) => (
+                  <PhotoCard
+                    key={photo.id}
+                    photo={photo}
+                    isSelected={selectedPhoto?.id === photo.id}
+                    isMultiSelected={selectedPhotoIds.has(photo.id)}
+                    onSelect={() => setSelectedPhoto(photo)}
+                    onToggleSelect={(e) => handleToggleSelectPhoto(photo.id, e)}
+                    onToggleFavorite={(e) => {
+                      e.stopPropagation();
+                      handleToggleFavorite(photo);
+                    }}
+                    onOpenFullscreen={() => setFullscreenPhoto(photo)}
+                  />
+                ))}
+              </div>
             </div>
           )}
         </div>

@@ -148,3 +148,4 @@ describe('AestheticAnalyzer - Photo of the Month', () => {
     assert.ok(winner.aiReasoning.length > 15);
   });
 });
+
