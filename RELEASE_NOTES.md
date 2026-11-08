@@ -3,6 +3,7 @@
 ## Version 1.0.0 — 2026-11-08
 
 ### 🚀 New Features
+- **ui**: integrate fullscreen viewer, interactive map view, timeline scrubber, and multi-select tray (`1f03314`)
 - **vault-engine**: implement AES-256-GCM zero-leakage vault and instant purge exclusion registry (`742d00e`)
 - **photo-engine**: implement native file scanner, streaming EXIF extractor, and thumbnail caching (`9c37922`)
 - **monorepo**: scaffold Turborepo workspace, shared packages, and application shells (`9a3fe1b`)

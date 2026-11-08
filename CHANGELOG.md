@@ -9,6 +9,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- **Windows MTP Phone Import Center (Phase 5)**:
+  - Authored `MtpManager` in `@gallery/photo-engine` querying Windows Portable Devices (WPD) and PnPEntity for connected Android mobile devices over USB.
+  - Implemented device directory traversal of camera folders (`DCIM/Camera`, `Pictures`) with strict `ExclusionManager` enforcement.
+  - Implemented chunked streaming file transfer with SHA-256 integrity verification, EXIF/GPS parsing, and automatic gallery ingestion.
+  - Connected native Electron IPC handlers (`mtp:detectDevices`, `mtp:scanDevicePhotos`, `mtp:transferPhotos`) through secure preload context bridge.
+  - Built `MtpImportModal` component in `apps/windows` with candidate selection, batch check toggles, destination folder selector, real-time MB/s progress speedometer, and completion states.
+  - Upgraded main window with dynamic USB MTP detection banner and live hardware sidebar status indicator.
+  - Added unit and integration tests verifying safe device detection, traversal, exclusion skipping, and SHA-256 integrity transfer.
 - **Gallery UI/UX & Motion System (Phase 4)**:
   - Built `clusterPhotosByLocation` in `@gallery/shared` to group photographs geographically by city and coordinate clusters, complete with automated unit tests.
   - Implemented `FullscreenViewer` component with 1x-3x pan & drag zoom, keyboard navigation (`ArrowLeft`, `ArrowRight`, `Esc`, `F`, `E`, `I`), double-click toggle, EXIF drawer, and responsive filmstrip thumbnail carousel.

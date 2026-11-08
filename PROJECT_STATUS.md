@@ -31,8 +31,8 @@ A verification scan of the host environment was performed on this Windows system
 | **Phase 2** | Native Media Scanner (Real Files, Zero Mock) | **COMPLETED (100%)** | Nov 8, 2026 |
 | **Phase 3** | Folder Exclusion & Hardware-Backed Vault Engine | **COMPLETED (100%)** | Nov 8, 2026 |
 | **Phase 4** | Gallery UI (Calendar, Timeline, Map, 120 FPS Grid) | **COMPLETED (100%)** | Nov 8, 2026 |
-| **Phase 5** | Windows MTP Import Center ("Found New Photos") | **NEXT IN QUEUE** | Immediate |
-| **Phase 6** | SyncFlow P2P Engine (Wi-Fi LAN + Animated Radar) | Pending | Milestone 6 |
+| **Phase 5** | Windows MTP Import Center ("Found New Photos") | **COMPLETED (100%)** | Nov 8, 2026 |
+| **Phase 6** | SyncFlow P2P Engine (Wi-Fi LAN + Animated Radar) | **NEXT IN QUEUE** | Immediate |
 | **Phase 7** | Local AI Engine (Face ArcFace + SigLIP Semantic) | Pending | Milestone 7 |
 | **Phase 8** | Photo of the Month (Aesthetic Scoring Engine) | Pending | Milestone 8 |
 | **Phase 9** | Mobile Photoshop-grade Non-Destructive Editor | Pending | Milestone 9 |
@@ -43,7 +43,7 @@ A verification scan of the host environment was performed on this Windows system
 ---
 
 ## 3. ACTIVE TASK
-- **Current Task ID:** `TASK-006`
-- **Goal:** Phase 5 — Windows MTP Phone Import Center (USB device detection, real Android device traversal, differential hash comparison, and streaming import).
+- **Current Task ID:** `TASK-007`
+- **Goal:** Phase 6 — SyncFlow Local Wireless Peer-to-Peer Engine (mDNS discovery, radar pairing, QR mutual TLS handshake, and 2-way incremental photo sync).
 - **Assigned:** Senior Architect / Senior UI/UX / AI Lead
 

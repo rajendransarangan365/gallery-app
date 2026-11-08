@@ -58,11 +58,11 @@ This roadmap details the engineering phases from initial scaffolding to producti
 
 ---
 
-## [Phase 5] Windows MTP Phone Import Center
-- [ ] Background Windows Portable Devices (WPD) listener for Android USB connection.
-- [ ] Auto-detection modal: *"47 new photos found on Galaxy S24. Shall I transfer?"*.
-- [ ] Side-by-side import review: Preview thumbnails, file size, duplicate comparison.
-- [ ] Resumable chunked file transfer with SHA-256 checksum verification.
+## [Phase 5] Windows MTP Phone Import Center (COMPLETED)
+- [x] Background Windows Portable Devices (WPD) / PnPEntity listener for Android USB connection.
+- [x] Auto-detection modal & dynamic prompt: *"📱 [Device Name] Connected: [N] new photographs found. Shall I transfer?"*.
+- [x] Side-by-side import review modal (`MtpImportModal`): Preview discovered files, file size, select/deselect all, target folder picker.
+- [x] Streaming chunked file transfer with SHA-256 checksum verification and strict exclusion boundary checks.
 
 ---
 

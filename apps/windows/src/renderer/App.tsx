@@ -30,6 +30,7 @@ import { FullscreenViewer } from './components/FullscreenViewer';
 import { MapView } from './components/MapView';
 import { MultiSelectTray } from './components/MultiSelectTray';
 import { TimelineScrubber } from './components/TimelineScrubber';
+import { MtpImportModal } from './components/MtpImportModal';
 
 // Type declaration for Electron context bridge
 declare global {
@@ -48,6 +49,14 @@ declare global {
       exclusionsList: () => Promise<any[]>;
       exclusionsAdd: (folderPath: string) => Promise<any>;
       exclusionsRemove: (folderPath: string) => Promise<boolean>;
+      // Windows MTP APIs
+      mtpDetectDevices: () => Promise<any[]>;
+      mtpScanDevicePhotos: (devicePath: string) => Promise<any[]>;
+      mtpTransferPhotos: (
+        candidates: any[],
+        destinationDir: string
+      ) => Promise<{ transferredPhotos: PhotoItem[]; skippedCount: number; failedCount: number }>;
+      onMtpProgress: (callback: (progress: any) => void) => () => void;
     };
   }
 }
@@ -76,6 +85,40 @@ export default function App() {
   const [fullscreenPhoto, setFullscreenPhoto] = useState<PhotoItem | null>(null);
   const [selectedPhotoIds, setSelectedPhotoIds] = useState<Set<string>>(new Set());
   const [activeScrubYear, setActiveScrubYear] = useState<string | undefined>(undefined);
+
+  // Phase 5: Windows MTP USB Mobile Device States
+  const [connectedMtpDevices, setConnectedMtpDevices] = useState<any[]>([]);
+  const [activeMtpDevice, setActiveMtpDevice] = useState<any | null>(null);
+  const [isMtpModalOpen, setIsMtpModalOpen] = useState(false);
+  const [detectedPhotoCount, setDetectedPhotoCount] = useState<number>(0);
+
+  const checkMtpDevices = async () => {
+    if (!window.electronAPI?.mtpDetectDevices) return;
+    try {
+      const devices = await window.electronAPI.mtpDetectDevices();
+      setConnectedMtpDevices(devices);
+      if (devices.length > 0) {
+        const primary = devices[0];
+        setActiveMtpDevice(primary);
+        setShowMtpPrompt(true);
+        if (primary.path && window.electronAPI.mtpScanDevicePhotos) {
+          const found = await window.electronAPI.mtpScanDevicePhotos(primary.path);
+          setDetectedPhotoCount(found.length);
+        }
+      } else {
+        setActiveMtpDevice(null);
+        setDetectedPhotoCount(0);
+      }
+    } catch (err) {
+      console.warn('MTP check failed:', err);
+    }
+  };
+
+  useEffect(() => {
+    checkMtpDevices();
+    const interval = setInterval(checkMtpDevices, 10000);
+    return () => clearInterval(interval);
+  }, []);
 
   const handleToggleFavorite = (photo: PhotoItem) => {
     setPhotos((prev) =>
@@ -367,15 +410,30 @@ export default function App() {
           </div>
         </div>
 
-        <div className="p-3 bg-canvas-base/60 rounded-xl border border-canvas-subtle/80 flex items-center justify-between">
+        <div
+          onClick={() => {
+            if (activeMtpDevice) setIsMtpModalOpen(true);
+            else checkMtpDevices();
+          }}
+          className="p-3 bg-canvas-base/60 hover:bg-canvas-base rounded-xl border border-canvas-subtle/80 flex items-center justify-between cursor-pointer transition-colors"
+          title={activeMtpDevice ? 'Click to open Import Center' : 'Click to scan for USB mobile devices'}
+        >
           <div className="flex items-center gap-2">
-            <Smartphone className="w-4 h-4 text-blue-400" />
+            <Smartphone className={`w-4 h-4 ${activeMtpDevice ? 'text-blue-400' : 'text-slate-500'}`} />
             <div className="text-xs">
-              <p className="font-medium text-slate-200">Android Connected</p>
-              <p className="text-[10px] text-slate-400">USB MTP Active</p>
+              <p className="font-medium text-slate-200">
+                {activeMtpDevice ? activeMtpDevice.name : 'No Mobile Device'}
+              </p>
+              <p className="text-[10px] text-slate-400 font-mono">
+                {activeMtpDevice ? 'USB MTP Active' : 'Scan for Devices'}
+              </p>
             </div>
           </div>
-          <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+          <span
+            className={`w-2 h-2 rounded-full ${
+              activeMtpDevice ? 'bg-emerald-400 animate-pulse' : 'bg-slate-600'
+            }`}
+          ></span>
         </div>
       </aside>
 
@@ -446,33 +504,39 @@ export default function App() {
           </div>
         </header>
 
-        {/* MTP Android Import Banner */}
-        {showMtpPrompt && (
-          <div className="bg-gradient-to-r from-blue-950/70 via-indigo-950/70 to-canvas-elevated border-b border-blue-500/30 px-6 py-3 flex items-center justify-between">
+        {/* Dynamic Real MTP Mobile Import Banner */}
+        {showMtpPrompt && activeMtpDevice && (
+          <div className="bg-gradient-to-r from-blue-950/70 via-indigo-950/70 to-canvas-elevated border-b border-blue-500/30 px-6 py-3 flex items-center justify-between animate-fade-in">
             <div className="flex items-center gap-3">
               <div className="p-2 bg-blue-500/20 text-blue-400 rounded-lg">
                 <Smartphone className="w-5 h-5" />
               </div>
               <div>
                 <p className="text-sm font-medium text-slate-100">
-                  📱 Galaxy S24 Ultra Connected: <span className="text-blue-400 font-semibold">47 new photographs</span> found
+                  📱 {activeMtpDevice.name} Connected:{' '}
+                  <span className="text-blue-400 font-semibold">
+                    {detectedPhotoCount > 0 ? `${detectedPhotoCount} new photographs` : 'Media storage'}
+                  </span>{' '}
+                  found
                 </p>
-                <p className="text-xs text-slate-400">Total size: 312 MB • Shall I transfer them to your local gallery library?</p>
+                <p className="text-xs text-slate-400">
+                  WPD / MTP hardware detected • Shall I review and transfer them to your local gallery library?
+                </p>
               </div>
             </div>
             <div className="flex items-center gap-2">
-              <button onClick={() => setShowMtpPrompt(false)} className="px-3 py-1.5 text-xs text-slate-400 hover:text-slate-200">
+              <button
+                onClick={() => setShowMtpPrompt(false)}
+                className="px-3 py-1.5 text-xs text-slate-400 hover:text-slate-200"
+              >
                 Later
               </button>
               <button
-                onClick={() => {
-                  alert('Initiating chunked streaming MTP transfer with SHA-256 verification...');
-                  setShowMtpPrompt(false);
-                }}
+                onClick={() => setIsMtpModalOpen(true)}
                 className="flex items-center gap-1.5 px-4 py-1.5 bg-blue-600 hover:bg-blue-500 text-white rounded-lg text-xs font-semibold shadow-md shadow-blue-600/30 transition-all"
               >
                 <ArrowDownToLine className="w-3.5 h-3.5" />
-                Transfer All Now
+                Review & Transfer
               </button>
             </div>
           </div>
@@ -903,6 +967,19 @@ export default function App() {
             setIsEditorOpen(true);
           }}
           onMoveToVault={handleMoveToVault}
+        />
+      )}
+
+      {/* 8. Windows MTP Mobile Import Modal */}
+      {isMtpModalOpen && activeMtpDevice && (
+        <MtpImportModal
+          device={activeMtpDevice}
+          onClose={() => setIsMtpModalOpen(false)}
+          onTransferComplete={(newPhotos) => {
+            setPhotos((prev) => [...prev, ...newPhotos]);
+            setIsMtpModalOpen(false);
+            setShowMtpPrompt(false);
+          }}
         />
       )}
     </div>

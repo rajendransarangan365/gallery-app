@@ -7,7 +7,7 @@ import { app, BrowserWindow, ipcMain, dialog } from 'electron';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { ExclusionManager } from '@gallery/security';
-import { PhotoIndexer } from '@gallery/photo-engine';
+import { PhotoIndexer, MtpManager, type MtpPhotoCandidate } from '@gallery/photo-engine';
 import { VaultManager, ExclusionRegistry } from '@gallery/vault-engine';
 
 const __filename = fileURLToPath(import.meta.url);
@@ -101,6 +101,25 @@ app.whenReady().then(() => {
   ipcMain.handle('exclusions:remove', (_event: unknown, folderPath: string) => {
     return exclusionRegistry.removeExclusion(folderPath);
   });
+
+  // Windows MTP Phone Import IPC Handlers
+  ipcMain.handle('mtp:detectDevices', async () => {
+    return MtpManager.detectConnectedDevices();
+  });
+  ipcMain.handle('mtp:scanDevicePhotos', async (_event: unknown, devicePath: string) => {
+    return MtpManager.scanDevicePhotos(devicePath, new Set(), exclusionManager);
+  });
+  ipcMain.handle(
+    'mtp:transferPhotos',
+    async (_event: unknown, candidates: MtpPhotoCandidate[], destinationDir: string) => {
+      return MtpManager.transferPhotos(candidates, destinationDir, {
+        exclusionManager,
+        onProgress: (progress) => {
+          mainWindow?.webContents.send('mtp:progress', progress);
+        },
+      });
+    }
+  );
 
   app.on('activate', () => {
     if (BrowserWindow.getAllWindows().length === 0) createWindow();

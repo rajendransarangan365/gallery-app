@@ -196,4 +196,52 @@ Implement Phase 4 rich interactive gallery capabilities across the Windows Deskt
 - **Task ID:** `TASK-006`
 - **Scope:** Phase 5 — Windows MTP Import Center: Implementing Windows Portable Devices (WPD) detection, reading real connected Android USB media, hash comparison against SQLite index, and chunked streaming transfers with progress bar and SHA-256 verification.
 
+---
+
+## [TASK-006] — Phase 5: Windows MTP Phone Import Center & Real Device Pipeline
+- **Timestamp:** 2026-11-08T20:03:00+05:30
+- **Author:** Lead AI Software Architect & Senior UI/UX Engineer
+- **Status:** COMPLETED
+
+### 1. Scope & Objective
+Implement Phase 5 Windows Portable Devices (WPD) / MTP Phone Import Center according to the Zero Mock Data policy:
+1. Native hardware detection: Query Windows PnPEntity and WPD for connected Android mobile devices over USB.
+2. Device traversal: Traverse camera directories (`DCIM/Camera`, `Pictures`) on connected devices while enforcing folder exclusions.
+3. Integrity transfer: Execute streaming chunked file transfers with SHA-256 integrity verification, EXIF/GPS extraction, and immediate gallery ingestion.
+4. UI/UX: Dynamic prompt banner (*"📱 [Device Name] Connected: [N] new photographs found. Shall I transfer?"*), sidebar live device status indicator, and interactive `MtpImportModal` with candidate selection, destination picker, real-time MB/s progress speedometer, and completion states.
+5. Unit and integration tests covering device query safety, media discovery, exclusion enforcement, and hash verification.
+
+### 2. Actions Performed
+1. Authored `MtpManager` in `packages/photo-engine/src/mtp.ts`:
+   - `detectConnectedDevices`: Runs WMI / CIM query for WPD/WUDFWpdMtp class entities and maps storage accessibility.
+   - `scanDevicePhotos`: Traverses camera directories while strictly skipping any paths registered with `ExclusionManager`.
+   - `transferPhotos`: Copies files stream-by-stream, calculates SHA-256 content hashes, parses EXIF metadata, generates thumbnails, and rejects excluded destinations.
+2. Created automated tests in `packages/photo-engine/test/mtp.test.ts`:
+   - Safe device detection on host.
+   - Directory traversal with strict exclusion bypassing.
+   - Streaming copy with SHA-256 verification and security exception upon excluded destination.
+3. Connected Electron Main Process & Context Bridge:
+   - Added IPC handlers `mtp:detectDevices`, `mtp:scanDevicePhotos`, `mtp:transferPhotos` in `apps/windows/src/main/index.ts`.
+   - Exposed methods safely via `contextBridge` in `apps/windows/src/preload/index.ts`.
+4. Built UI/UX in `apps/windows`:
+   - Created `MtpImportModal.tsx` in `apps/windows/src/renderer/components/`.
+   - Wired live polling (`checkMtpDevices`) and dynamic banner into `apps/windows/src/renderer/App.tsx`.
+   - Connected sidebar device indicator to live hardware status.
+
+### 3. Verification & Evidence
+- Monorepo execution (`pnpm turbo run build typecheck test lint`): **27/27 successful tasks, 0 errors**.
+- All unit & integration test suites passed:
+  - `@gallery/photo-engine`: 4/4 passed (`mtp.test.ts` 3/3, `scanner.test.ts` 1/1).
+  - `@gallery/security`: 6/6 passed.
+  - `@gallery/metadata-engine`: 3/3 passed.
+  - `@gallery/vault-engine`: 2/2 passed.
+  - `@gallery/shared`: 1/1 passed.
+  - **Total: 16/16 automated tests passing**.
+- Vite production build for `apps/windows`: Compiled bundle `dist/assets/index-*.js` (212.84 kB) in 3.01s with 0 errors.
+
+### 4. Next Immediate Task
+- **Task ID:** `TASK-007`
+- **Scope:** Phase 6 — SyncFlow Local Wireless Peer-to-Peer Engine: Local mDNS discovery (`_photogallery._tcp.local`), animated radar pairing UI, QR code TLS mutual authentication handshake, and incremental two-way photo streaming.
+
+
 
