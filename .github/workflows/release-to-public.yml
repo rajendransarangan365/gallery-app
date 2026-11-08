@@ -105,6 +105,9 @@ jobs:
       - name: Install Dependencies
         run: pnpm install --no-frozen-lockfile
 
+      - name: Build All Monorepo Workspace Packages
+        run: pnpm turbo run build
+
       - name: Build Android Release APK
         run: |
           cd apps/android/android
