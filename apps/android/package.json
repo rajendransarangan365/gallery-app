@@ -9,7 +9,8 @@
     "build": "echo 'Building Android APK'",
     "typecheck": "tsc --noEmit",
     "lint": "echo 'Android lint passed'",
-    "test": "echo 'Android unit tests passed'"
+    "test": "echo 'Android unit tests passed'",
+    "ios": "expo run:ios"
   },
   "dependencies": {
     "@gallery/shared": "workspace:*",
@@ -26,4 +27,3 @@
     "typescript": "^5.8.2"
   }
 }
-

@@ -68,8 +68,12 @@ jobs:
       - name: Install Dependencies
         run: pnpm install
 
-      - name: Build Windows Executable (NSIS Installer)
+      - name: Build Windows Application
         run: pnpm --filter @gallery/windows build
+
+      - name: Package Windows Executable (NSIS Installer)
+        run: npx --yes electron-builder --win nsis:x64 --config.directories.output=dist-installer
+        working-directory: apps/windows
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
@@ -77,7 +81,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: windows-installer
-          path: apps/windows/dist/*.exe
+          path: apps/windows/dist-installer/*.exe
 
   # -------------------------------------------------------------
   # Job 3: Build Android Release APK
@@ -115,6 +119,7 @@ jobs:
       - name: Build Android Release APK
         run: |
           cd apps/android/android
+          chmod +x gradlew
           ./gradlew assembleRelease --no-daemon
 
       - name: Upload Android Artifact
@@ -163,9 +168,22 @@ jobs:
 
       - name: Publish to Public Release Repository
         uses: softprops/action-gh-release@v2
+        continue-on-error: true
         with:
           repository: rajendransarangan365/gallery-app-release
-          token: ${{ secrets.PUBLIC_REPO_TOKEN }} # Personal Access Token with repo scope for public release repo
+          token: ${{ secrets.PUBLIC_REPO_TOKEN || secrets.GITHUB_TOKEN }}
+          tag_name: ${{ github.ref_name }}
+          name: Release ${{ github.ref_name }}
+          body_path: RELEASE_NOTES.md
+          files: |
+            dist-release/*
+          draft: false
+          prerelease: false
+
+      - name: Publish to Primary Code Repository Releases
+        uses: softprops/action-gh-release@v2
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
           tag_name: ${{ github.ref_name }}
           name: Release ${{ github.ref_name }}
           body_path: RELEASE_NOTES.md

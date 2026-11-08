@@ -41,6 +41,24 @@
     "tailwindcss": "^3.4.17",
     "typescript": "^5.8.2",
     "vite": "^6.2.0"
+  },
+  "build": {
+    "appId": "com.photogallery.windows",
+    "productName": "PhotoGallery",
+    "directories": {
+      "output": "dist-installer"
+    },
+    "win": {
+      "target": "nsis"
+    },
+    "nsis": {
+      "oneClick": true,
+      "perMachine": false
+    },
+    "files": [
+      "dist/**/*",
+      "dist-electron/**/*"
+    ]
   }
 }
 
