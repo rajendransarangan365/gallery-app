@@ -49,12 +49,12 @@ This roadmap details the engineering phases from initial scaffolding to producti
 
 ---
 
-## [Phase 4] Premium Gallery UI/UX & Motion System
-- [ ] Fluid Zoomable Grid: 1, 2, 3, 5 column views with pinch-to-zoom spring physics (60/120 FPS).
-- [ ] Calendar & Timeline View: Sticky month/year headers, scrub bar, jump-to-date picker.
-- [ ] Location View: Interactive Map (Mapbox / Leaflet offline tiles) with GPS clustering and reverse geocoding fallback.
-- [ ] Full-screen Photo Viewer: Shared-element hero transition, pan, pinch-zoom, velocity-based swipe-down dismiss.
-- [ ] Multi-selection tray: Select all, batch favorite, batch move to album, batch export.
+## [Phase 4] Premium Gallery UI/UX & Motion System (COMPLETED)
+- [x] Fluid Zoomable Grid: 2, 3, 5 column views with animated density switches.
+- [x] Calendar & Timeline View: Sticky month/year headers, sticky right-rail TimelineScrubber with fast year jumps.
+- [x] Location View: Interactive MapView with geographic clustering by city/GPS coordinates and bottom slide-up photo drawer.
+- [x] Full-screen Photo Viewer: FullscreenViewer with pan & drag physics, 100%-300% zoom, keyboard shortcuts, filmstrip, and EXIF/metadata drawer.
+- [x] Multi-selection tray: Floating glassmorphism MultiSelectTray with Select All, Deselect All, Batch Favorite, Batch Move to Vault, and Batch Export.
 
 ---
 

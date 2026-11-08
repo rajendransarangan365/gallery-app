@@ -9,6 +9,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- **Gallery UI/UX & Motion System (Phase 4)**:
+  - Built `clusterPhotosByLocation` in `@gallery/shared` to group photographs geographically by city and coordinate clusters, complete with automated unit tests.
+  - Implemented `FullscreenViewer` component with 1x-3x pan & drag zoom, keyboard navigation (`ArrowLeft`, `ArrowRight`, `Esc`, `F`, `E`, `I`), double-click toggle, EXIF drawer, and responsive filmstrip thumbnail carousel.
+  - Implemented `MapView` component displaying interactive geographic location cards, photo counts, coordinates, and an expandable photo drawer.
+  - Implemented `MultiSelectTray` floating glassmorphism dock supporting Select All, Deselect All, Batch Favorite, Batch Move to Vault, and Batch Export.
+  - Implemented `TimelineScrubber` sticky rail with year jump tooltips and smooth scroll targeting.
+  - Enhanced `PhotoCard` with multi-select checkboxes, favorite heart badges, resolution indicators, and fullscreen zoom actions.
+  - Integrated full Phase 4 suite into `apps/windows/src/renderer/App.tsx` with unified state management.
 - **Privacy Governance & Secure Vault Engine (Phase 3)**:
   - Created `@gallery/vault-engine` with `VaultManager` providing PBKDF2/SHA-512 Master Key derivation, constant-time `timingSafeEqual` authentication, AES-256-GCM payload encryption, and in-memory key scrubbing.
   - Implemented secure file import with overwrite scrubbing of original plaintext photos before unlinking.

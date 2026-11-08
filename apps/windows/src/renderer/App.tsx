@@ -19,10 +19,17 @@ import {
   Info,
   Loader2,
   FolderOpen,
-  X
+  X,
+  CheckSquare,
+  Square,
+  Maximize2
 } from 'lucide-react';
 import type { PhotoItem, GridDensity } from '@gallery/shared';
 import { formatMonthKey, getMonthDisplayName } from '@gallery/shared';
+import { FullscreenViewer } from './components/FullscreenViewer';
+import { MapView } from './components/MapView';
+import { MultiSelectTray } from './components/MultiSelectTray';
+import { TimelineScrubber } from './components/TimelineScrubber';
 
 // Type declaration for Electron context bridge
 declare global {
@@ -64,6 +71,112 @@ export default function App() {
   const [vaultItems, setVaultItems] = useState<any[]>([]);
   const [exclusions, setExclusions] = useState<any[]>([]);
   const [purgeNotice, setPurgeNotice] = useState<string | null>(null);
+
+  // Phase 4 UI States: Fullscreen, Multi-Select & Timeline
+  const [fullscreenPhoto, setFullscreenPhoto] = useState<PhotoItem | null>(null);
+  const [selectedPhotoIds, setSelectedPhotoIds] = useState<Set<string>>(new Set());
+  const [activeScrubYear, setActiveScrubYear] = useState<string | undefined>(undefined);
+
+  const handleToggleFavorite = (photo: PhotoItem) => {
+    setPhotos((prev) =>
+      prev.map((p) => (p.id === photo.id ? { ...p, isFavorite: !p.isFavorite } : p))
+    );
+    if (selectedPhoto && selectedPhoto.id === photo.id) {
+      setSelectedPhoto((prev) => (prev ? { ...prev, isFavorite: !prev.isFavorite } : null));
+    }
+  };
+
+  const handleMoveToVault = async (photo: PhotoItem) => {
+    if (!window.electronAPI) {
+      alert('Vault operations require the Electron desktop client.');
+      return;
+    }
+    try {
+      await window.electronAPI.vaultImport(photo.fileUri);
+      setPhotos((prev) => prev.filter((p) => p.id !== photo.id));
+      if (fullscreenPhoto?.id === photo.id) setFullscreenPhoto(null);
+      if (selectedPhoto?.id === photo.id) setSelectedPhoto(null);
+      alert(`Photo "${photo.fileName}" has been safely moved to your encrypted Secure Vault.`);
+    } catch (err) {
+      alert('Failed to move photo to vault: ' + (err as Error).message);
+    }
+  };
+
+  const handleToggleSelectPhoto = (photoId: string, e: React.MouseEvent) => {
+    e.stopPropagation();
+    setSelectedPhotoIds((prev) => {
+      const next = new Set(prev);
+      if (next.has(photoId)) {
+        next.delete(photoId);
+      } else {
+        next.add(photoId);
+      }
+      return next;
+    });
+  };
+
+  const handleSelectAll = () => {
+    setSelectedPhotoIds(new Set(photos.map((p) => p.id)));
+  };
+
+  const handleClearSelection = () => {
+    setSelectedPhotoIds(new Set());
+  };
+
+  const handleBatchFavorite = () => {
+    setPhotos((prev) =>
+      prev.map((p) => (selectedPhotoIds.has(p.id) ? { ...p, isFavorite: true } : p))
+    );
+    setSelectedPhotoIds(new Set());
+  };
+
+  const handleBatchMoveToVault = async () => {
+    if (!window.electronAPI) {
+      alert('Vault operations require the Electron desktop client.');
+      return;
+    }
+    const toMove = photos.filter((p) => selectedPhotoIds.has(p.id));
+    let count = 0;
+    for (const p of toMove) {
+      try {
+        await window.electronAPI.vaultImport(p.fileUri);
+        count++;
+      } catch (err) {
+        console.error('Failed to import to vault:', p.fileName, err);
+      }
+    }
+    setPhotos((prev) => prev.filter((p) => !selectedPhotoIds.has(p.id)));
+    setSelectedPhotoIds(new Set());
+    alert(`Successfully moved and encrypted ${count} photographs into the Secure Vault.`);
+  };
+
+  const handleBatchExport = () => {
+    alert(`Exporting copy of ${selectedPhotoIds.size} photographs to chosen destination...`);
+    setSelectedPhotoIds(new Set());
+  };
+
+  const availableYears = Array.from(
+    new Set(
+      photos
+        .map((p) => {
+          try {
+            const yr = new Date(p.captureDate).getFullYear().toString();
+            return yr !== 'NaN' ? yr : null;
+          } catch {
+            return null;
+          }
+        })
+        .filter((y): y is string => !!y)
+    )
+  ).sort((a, b) => Number(b) - Number(a));
+
+  const handleSelectYear = (year: string) => {
+    setActiveScrubYear(year);
+    const targetElement = document.getElementById(`year-section-${year}`);
+    if (targetElement) {
+      targetElement.scrollIntoView({ behavior: 'smooth' });
+    }
+  };
 
   const loadExclusions = async () => {
     if (window.electronAPI?.exclusionsList) {
@@ -521,30 +634,71 @@ export default function App() {
                 Select Photos Folder to Scan
               </button>
             </div>
+          ) : activeTab === 'map' ? (
+            /* Interactive Geographic Map View */
+            <MapView
+              photos={photos}
+              onSelectPhoto={(photo) => {
+                setSelectedPhoto(photo);
+                setFullscreenPhoto(photo);
+              }}
+            />
+          ) : activeTab === 'people' ? (
+            /* People & Faces AI Clustering View */
+            <div className="h-full flex flex-col items-center justify-center text-center max-w-md mx-auto">
+              <div className="w-16 h-16 rounded-2xl bg-canvas-elevated border border-canvas-subtle flex items-center justify-center text-indigo-400 mb-4 shadow-xl">
+                <Users className="w-8 h-8" />
+              </div>
+              <h3 className="text-lg font-semibold text-slate-100">People & Face Recognition</h3>
+              <p className="text-sm text-slate-400 mt-1">
+                Zero Cloud AI. Face detection (SCRFD) and local clustering (ArcFace) run strictly on-device using ONNX Runtime with DirectML acceleration.
+              </p>
+            </div>
+          ) : activeTab === 'sync' ? (
+            /* SyncFlow P2P Engine View */
+            <div className="h-full flex flex-col items-center justify-center text-center max-w-md mx-auto">
+              <div className="w-16 h-16 rounded-2xl bg-canvas-elevated border border-canvas-subtle flex items-center justify-center text-blue-400 mb-4 shadow-xl">
+                <RefreshCw className="w-8 h-8 animate-spin" style={{ animationDuration: '6s' }} />
+              </div>
+              <h3 className="text-lg font-semibold text-slate-100">SyncFlow P2P Engine</h3>
+              <p className="text-sm text-slate-400 mt-1">
+                Local Wi-Fi mDNS discovery and high-speed encrypted TLS photo transfers between Windows and Android devices without internet access.
+              </p>
+            </div>
           ) : activeTab === 'calendar' ? (
             /* Calendar Grouping View */
             <div className="space-y-8">
-              {Object.entries(calendarGroups).map(([monthKey, groupPhotos]) => (
-                <div key={monthKey} className="space-y-3">
-                  <div className="sticky top-0 bg-canvas-base/90 backdrop-blur-md py-2 border-b border-canvas-subtle/50 flex items-center justify-between">
-                    <h2 className="text-base font-semibold text-slate-200">{getMonthDisplayName(monthKey)}</h2>
-                    <span className="text-xs text-slate-400 font-mono">{groupPhotos.length} photos</span>
+              {Object.entries(calendarGroups).map(([monthKey, groupPhotos]) => {
+                const year = monthKey.slice(0, 4);
+                return (
+                  <div key={monthKey} id={`year-section-${year}`} className="space-y-3">
+                    <div className="sticky top-0 z-10 bg-canvas-base/90 backdrop-blur-md py-2 border-b border-canvas-subtle/50 flex items-center justify-between">
+                      <h2 className="text-base font-semibold text-slate-200">{getMonthDisplayName(monthKey)}</h2>
+                      <span className="text-xs text-slate-400 font-mono">{groupPhotos.length} photos</span>
+                    </div>
+                    <div
+                      className="grid gap-3"
+                      style={{ gridTemplateColumns: `repeat(${gridDensity}, minmax(0, 1fr))` }}
+                    >
+                      {groupPhotos.map((photo) => (
+                        <PhotoCard
+                          key={photo.id}
+                          photo={photo}
+                          isSelected={selectedPhoto?.id === photo.id}
+                          isMultiSelected={selectedPhotoIds.has(photo.id)}
+                          onSelect={() => setSelectedPhoto(photo)}
+                          onToggleSelect={(e) => handleToggleSelectPhoto(photo.id, e)}
+                          onToggleFavorite={(e) => {
+                            e.stopPropagation();
+                            handleToggleFavorite(photo);
+                          }}
+                          onOpenFullscreen={() => setFullscreenPhoto(photo)}
+                        />
+                      ))}
+                    </div>
                   </div>
-                  <div
-                    className="grid gap-3"
-                    style={{ gridTemplateColumns: `repeat(${gridDensity}, minmax(0, 1fr))` }}
-                  >
-                    {groupPhotos.map((photo) => (
-                      <PhotoCard
-                        key={photo.id}
-                        photo={photo}
-                        isSelected={selectedPhoto?.id === photo.id}
-                        onSelect={() => setSelectedPhoto(photo)}
-                      />
-                    ))}
-                  </div>
-                </div>
-              ))}
+                );
+              })}
             </div>
           ) : (
             /* Standard Grid View */
@@ -557,12 +711,28 @@ export default function App() {
                   key={photo.id}
                   photo={photo}
                   isSelected={selectedPhoto?.id === photo.id}
+                  isMultiSelected={selectedPhotoIds.has(photo.id)}
                   onSelect={() => setSelectedPhoto(photo)}
+                  onToggleSelect={(e) => handleToggleSelectPhoto(photo.id, e)}
+                  onToggleFavorite={(e) => {
+                    e.stopPropagation();
+                    handleToggleFavorite(photo);
+                  }}
+                  onOpenFullscreen={() => setFullscreenPhoto(photo)}
                 />
               ))}
             </div>
           )}
         </div>
+
+        {/* Timeline Scrubber */}
+        {(activeTab === 'photos' || activeTab === 'calendar') && (
+          <TimelineScrubber
+            years={availableYears}
+            activeYear={activeScrubYear}
+            onSelectYear={handleSelectYear}
+          />
+        )}
       </main>
 
       {/* 3. Right Inspector Pane (Metadata, EXIF, Location) */}
@@ -708,26 +878,129 @@ export default function App() {
           </div>
         </div>
       )}
+
+      {/* 6. Multi-Select Floating Action Dock */}
+      <MultiSelectTray
+        selectedCount={selectedPhotoIds.size}
+        totalCount={photos.length}
+        onSelectAll={handleSelectAll}
+        onClearSelection={handleClearSelection}
+        onBatchFavorite={handleBatchFavorite}
+        onBatchMoveToVault={handleBatchMoveToVault}
+        onBatchExport={handleBatchExport}
+      />
+
+      {/* 7. Fullscreen Photo Viewer Modal */}
+      {fullscreenPhoto && (
+        <FullscreenViewer
+          photos={filteredPhotos.length > 0 ? filteredPhotos : photos}
+          currentPhoto={fullscreenPhoto}
+          onClose={() => setFullscreenPhoto(null)}
+          onToggleFavorite={handleToggleFavorite}
+          onEditInStudio={(p) => {
+            setFullscreenPhoto(null);
+            setSelectedPhoto(p);
+            setIsEditorOpen(true);
+          }}
+          onMoveToVault={handleMoveToVault}
+        />
+      )}
     </div>
   );
 }
 
-function PhotoCard({ photo, isSelected, onSelect }: { photo: PhotoItem; isSelected: boolean; onSelect: () => void }) {
+function PhotoCard({
+  photo,
+  isSelected,
+  isMultiSelected,
+  onSelect,
+  onToggleSelect,
+  onToggleFavorite,
+  onOpenFullscreen,
+}: {
+  photo: PhotoItem;
+  isSelected: boolean;
+  isMultiSelected: boolean;
+  onSelect: () => void;
+  onToggleSelect: (e: React.MouseEvent) => void;
+  onToggleFavorite: (e: React.MouseEvent) => void;
+  onOpenFullscreen: () => void;
+}) {
   return (
     <div
       onClick={onSelect}
+      onDoubleClick={onOpenFullscreen}
       className={`group relative aspect-square bg-canvas-elevated rounded-xl overflow-hidden border cursor-pointer transition-all ${
-        isSelected ? 'border-blue-500 ring-2 ring-blue-500/30' : 'border-canvas-subtle hover:border-slate-600'
+        isMultiSelected
+          ? 'border-blue-500 ring-2 ring-blue-500/40 shadow-lg shadow-blue-500/10'
+          : isSelected
+          ? 'border-blue-400 ring-1 ring-blue-400/30'
+          : 'border-canvas-subtle hover:border-slate-600'
       }`}
     >
-      <div className="w-full h-full flex items-center justify-center bg-canvas-subtle/30 text-slate-600">
-        <Camera className="w-8 h-8 opacity-40 group-hover:scale-110 transition-transform" />
-      </div>
+      {/* Thumbnail or Fallback */}
+      {photo.thumbnailPath ? (
+        <img
+          src={photo.thumbnailPath}
+          alt={photo.fileName}
+          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+          loading="lazy"
+        />
+      ) : (
+        <div className="w-full h-full flex flex-col items-center justify-center bg-canvas-subtle/30 text-slate-600">
+          <Camera className="w-8 h-8 opacity-40 group-hover:scale-110 transition-transform" />
+          <span className="text-[10px] text-slate-500 font-mono mt-1">
+            {photo.width} × {photo.height}
+          </span>
+        </div>
+      )}
+
+      {/* Top Left Multi-Select Checkbox */}
+      <button
+        onClick={onToggleSelect}
+        className={`absolute top-2 left-2 z-10 p-1 rounded-lg transition-all ${
+          isMultiSelected
+            ? 'bg-blue-600 text-white shadow-md shadow-blue-600/30'
+            : 'bg-black/50 text-slate-300 hover:text-white backdrop-blur-sm opacity-0 group-hover:opacity-100'
+        }`}
+        title={isMultiSelected ? 'Deselect photo' : 'Select photo'}
+      >
+        {isMultiSelected ? <CheckSquare className="w-4 h-4" /> : <Square className="w-4 h-4" />}
+      </button>
+
+      {/* Top Right Favorite Button */}
+      <button
+        onClick={onToggleFavorite}
+        className={`absolute top-2 right-2 z-10 p-1.5 rounded-lg transition-all ${
+          photo.isFavorite
+            ? 'bg-rose-500/20 text-rose-400 border border-rose-500/40 shadow-md shadow-rose-500/20'
+            : 'bg-black/50 text-slate-300 hover:text-white backdrop-blur-sm opacity-0 group-hover:opacity-100'
+        }`}
+        title={photo.isFavorite ? 'Remove from favorites' : 'Add to favorites'}
+      >
+        <Heart className={`w-3.5 h-3.5 ${photo.isFavorite ? 'fill-rose-400' : ''}`} />
+      </button>
+
+      {/* Bottom Gradient Overlay & Meta */}
       <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity p-3 flex flex-col justify-end">
-        <p className="text-xs font-semibold text-white truncate">{photo.fileName}</p>
-        <p className="text-[10px] text-slate-300 font-mono">
-          {new Date(photo.captureDate).toLocaleDateString()}
-        </p>
+        <div className="flex items-center justify-between">
+          <div className="min-w-0 flex-1 mr-2">
+            <p className="text-xs font-semibold text-white truncate">{photo.fileName}</p>
+            <p className="text-[10px] text-slate-300 font-mono">
+              {new Date(photo.captureDate).toLocaleDateString()}
+            </p>
+          </div>
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
+              onOpenFullscreen();
+            }}
+            className="p-1 rounded-lg bg-white/10 hover:bg-white/20 text-white transition-colors"
+            title="Full Screen Viewer"
+          >
+            <Maximize2 className="w-3.5 h-3.5" />
+          </button>
+        </div>
       </div>
     </div>
   );

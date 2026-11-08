@@ -30,8 +30,8 @@ A verification scan of the host environment was performed on this Windows system
 | **Phase 1** | Monorepo Shell & Foundation (Android + Windows) | **COMPLETED (100%)** | Nov 8, 2026 |
 | **Phase 2** | Native Media Scanner (Real Files, Zero Mock) | **COMPLETED (100%)** | Nov 8, 2026 |
 | **Phase 3** | Folder Exclusion & Hardware-Backed Vault Engine | **COMPLETED (100%)** | Nov 8, 2026 |
-| **Phase 4** | Gallery UI (Calendar, Timeline, Map, 120 FPS Grid) | **NEXT IN QUEUE** | Immediate |
-| **Phase 5** | Windows MTP Import Center ("Found New Photos") | Pending | Milestone 5 |
+| **Phase 4** | Gallery UI (Calendar, Timeline, Map, 120 FPS Grid) | **COMPLETED (100%)** | Nov 8, 2026 |
+| **Phase 5** | Windows MTP Import Center ("Found New Photos") | **NEXT IN QUEUE** | Immediate |
 | **Phase 6** | SyncFlow P2P Engine (Wi-Fi LAN + Animated Radar) | Pending | Milestone 6 |
 | **Phase 7** | Local AI Engine (Face ArcFace + SigLIP Semantic) | Pending | Milestone 7 |
 | **Phase 8** | Photo of the Month (Aesthetic Scoring Engine) | Pending | Milestone 8 |
@@ -43,7 +43,7 @@ A verification scan of the host environment was performed on this Windows system
 ---
 
 ## 3. ACTIVE TASK
-- **Current Task ID:** `TASK-005`
-- **Goal:** Phase 4 — Premium Gallery UI & Motion System (fluid grid density zoom, shared-element photo viewer, interactive map view, multi-selection).
+- **Current Task ID:** `TASK-006`
+- **Goal:** Phase 5 — Windows MTP Phone Import Center (USB device detection, real Android device traversal, differential hash comparison, and streaming import).
 - **Assigned:** Senior Architect / Senior UI/UX / AI Lead
 

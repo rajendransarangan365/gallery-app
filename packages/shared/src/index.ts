@@ -9,4 +9,5 @@ export * from './types/sync.js';
 export * from './types/editor.js';
 export * from './types/vault.js';
 export * from './utils/date.js';
+export * from './utils/geo.js';
 
