@@ -31,6 +31,7 @@ import { MapView } from './components/MapView';
 import { MultiSelectTray } from './components/MultiSelectTray';
 import { TimelineScrubber } from './components/TimelineScrubber';
 import { MtpImportModal } from './components/MtpImportModal';
+import { SyncCenter } from './components/SyncCenter';
 
 // Type declaration for Electron context bridge
 declare global {
@@ -720,15 +721,10 @@ export default function App() {
             </div>
           ) : activeTab === 'sync' ? (
             /* SyncFlow P2P Engine View */
-            <div className="h-full flex flex-col items-center justify-center text-center max-w-md mx-auto">
-              <div className="w-16 h-16 rounded-2xl bg-canvas-elevated border border-canvas-subtle flex items-center justify-center text-blue-400 mb-4 shadow-xl">
-                <RefreshCw className="w-8 h-8 animate-spin" style={{ animationDuration: '6s' }} />
-              </div>
-              <h3 className="text-lg font-semibold text-slate-100">SyncFlow P2P Engine</h3>
-              <p className="text-sm text-slate-400 mt-1">
-                Local Wi-Fi mDNS discovery and high-speed encrypted TLS photo transfers between Windows and Android devices without internet access.
-              </p>
-            </div>
+            <SyncCenter
+              photos={photos}
+              onImportSyncedPhotos={(newPhotos) => setPhotos((prev) => [...prev, ...newPhotos])}
+            />
           ) : activeTab === 'calendar' ? (
             /* Calendar Grouping View */
             <div className="space-y-8">

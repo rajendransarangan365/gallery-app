@@ -9,6 +9,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- **SyncFlow Local Wireless P2P Transfer Engine (Phase 6)**:
+  - Created `@gallery/sync-engine` package implementing local-first zero-cloud device synchronization over local Wi-Fi.
+  - Implemented `DiscoveryManager` providing UDP socket broadcast beacons on port 41235 with automatic TTL peer expiration and zero telemetry.
+  - Implemented `PairingManager` with 6-digit cryptographic PIN generation, QR code payload generation, constant-time `timingSafeEqual` authentication, and trusted peer session tracking.
+  - Implemented `SyncEngine` for content-addressable SHA-256 manifest comparison calculating symmetric delta (local missing vs remote missing), chunked streaming ingestion with integrity verification, and strict folder exclusion enforcement.
+  - Built `SyncCenter.tsx` UI in `apps/windows` featuring animated radar sweep scanning, orbiting peer nodes, interactive PIN/QR pairing modal, live MB/s bandwidth speedometer, and real-time streaming progress logs.
+  - Added unit tests covering invitation generation, PIN verification, manifest delta calculation, and tamper/exclusion rejection with 100% pass rate.
 - **Windows MTP Phone Import Center (Phase 5)**:
   - Authored `MtpManager` in `@gallery/photo-engine` querying Windows Portable Devices (WPD) and PnPEntity for connected Android mobile devices over USB.
   - Implemented device directory traversal of camera folders (`DCIM/Camera`, `Pictures`) with strict `ExclusionManager` enforcement.

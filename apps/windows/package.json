@@ -20,6 +20,7 @@
     "@gallery/metadata-engine": "workspace:*",
     "@gallery/photo-engine": "workspace:*",
     "@gallery/vault-engine": "workspace:*",
+    "@gallery/sync-engine": "workspace:*",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
     "lucide-react": "^0.475.0"

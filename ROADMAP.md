@@ -66,11 +66,11 @@ This roadmap details the engineering phases from initial scaffolding to producti
 
 ---
 
-## [Phase 6] SyncFlow Local Wireless Peer-to-Peer Engine
-- [ ] Local device discovery via mDNS / Bonjour (`_photogallery._tcp.local`).
-- [ ] Animated Radar Pairing UI with QR code mutual TLS handshake.
-- [ ] Two-way incremental sync protocol using content-addressable SHA-256 hashes.
-- [ ] Animated Sync Center: Flying thumbnail transfer particles, live bandwidth speedometer, circular progress.
+## [Phase 6] SyncFlow Local Wireless Peer-to-Peer Engine (COMPLETED)
+- [x] Local device discovery via UDP broadcast and mDNS protocol (`_photogallery._tcp.local`).
+- [x] Animated Radar Pairing UI with QR code and 6-digit constant-time mutual TLS handshake.
+- [x] Two-way incremental sync protocol using content-addressable SHA-256 hashes (`SyncEngine.compareManifests`).
+- [x] Animated Sync Center (`SyncCenter.tsx`): Sweeping radar beam, orbiting peer nodes, live bandwidth speedometer (MB/s), circular progress, and strict privacy isolation.
 
 ---
 

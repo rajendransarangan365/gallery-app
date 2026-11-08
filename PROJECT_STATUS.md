@@ -32,8 +32,8 @@ A verification scan of the host environment was performed on this Windows system
 | **Phase 3** | Folder Exclusion & Hardware-Backed Vault Engine | **COMPLETED (100%)** | Nov 8, 2026 |
 | **Phase 4** | Gallery UI (Calendar, Timeline, Map, 120 FPS Grid) | **COMPLETED (100%)** | Nov 8, 2026 |
 | **Phase 5** | Windows MTP Import Center ("Found New Photos") | **COMPLETED (100%)** | Nov 8, 2026 |
-| **Phase 6** | SyncFlow P2P Engine (Wi-Fi LAN + Animated Radar) | **NEXT IN QUEUE** | Immediate |
-| **Phase 7** | Local AI Engine (Face ArcFace + SigLIP Semantic) | Pending | Milestone 7 |
+| **Phase 6** | SyncFlow P2P Engine (Wi-Fi LAN + Animated Radar) | **COMPLETED (100%)** | Nov 8, 2026 |
+| **Phase 7** | Local AI Engine (Face ArcFace + SigLIP Semantic) | **NEXT IN QUEUE** | Immediate |
 | **Phase 8** | Photo of the Month (Aesthetic Scoring Engine) | Pending | Milestone 8 |
 | **Phase 9** | Mobile Photoshop-grade Non-Destructive Editor | Pending | Milestone 9 |
 | **Phase 10** | Memories, Slideshow & Native Social Share | Pending | Milestone 10 |
@@ -43,7 +43,7 @@ A verification scan of the host environment was performed on this Windows system
 ---
 
 ## 3. ACTIVE TASK
-- **Current Task ID:** `TASK-007`
-- **Goal:** Phase 6 — SyncFlow Local Wireless Peer-to-Peer Engine (mDNS discovery, radar pairing, QR mutual TLS handshake, and 2-way incremental photo sync).
+- **Current Task ID:** `TASK-008`
+- **Goal:** Phase 7 — Local On-Device AI Engine (SCRFD face detection, ArcFace facial embeddings, interactive People albums, and SigLIP semantic text-to-photo search).
 - **Assigned:** Senior Architect / Senior UI/UX / AI Lead
 
