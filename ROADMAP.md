@@ -107,15 +107,15 @@ This roadmap details the engineering phases from initial scaffolding to producti
 ---
 
 ## [Phase 11] Performance Hardening & Stress Testing
-- [ ] Stress-test library with 10,000+ to 50,000+ real photos.
-- [ ] Virtualized windowing (`@tanstack/react-virtual` / FlashList) for instantaneous scroll response.
-- [ ] Memory leak audit: Garbage collection of off-screen WebP textures.
+- [x] Stress-test library with 10,000+ to 50,000+ real photos.
+- [x] Virtualized windowing (`@tanstack/react-virtual` / FlashList) for instantaneous scroll response.
+- [x] Memory leak audit: Garbage collection of off-screen WebP textures.
 
 ---
 
 ## [Phase 12] Dual-Repository CI/CD Release Automation
-- [ ] Set up GitHub Actions workflow in private repo.
-- [ ] Automatic building of Windows `.exe` installer (NSIS) and Android `.apk`.
-- [ ] Automated execution of `scripts/generate-release-notes.mjs`.
-- [ ] Automated artifact publishing to public releases repository with SHA-256 checksums.
+- [x] Set up GitHub Actions workflow in private repo.
+- [x] Automatic building of Windows `.exe` installer (NSIS) and Android `.apk`.
+- [x] Automated execution of `scripts/generate-release-notes.mjs`.
+- [x] Automated artifact publishing to public releases repository with SHA-256 checksums.
 

@@ -14,7 +14,7 @@
   "scripts": {
     "build": "tsc",
     "typecheck": "tsc --noEmit",
-    "test": "node --experimental-strip-types --test test/scanner.test.ts test/mtp.test.ts",
+    "test": "node --experimental-strip-types --test test/scanner.test.ts test/mtp.test.ts test/lru-cache.test.ts test/stress.test.ts",
     "clean": "node -e \"fs.rmSync('dist', { recursive: true, force: true })\""
   },
   "dependencies": {
