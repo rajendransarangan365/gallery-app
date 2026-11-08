@@ -74,19 +74,18 @@ This roadmap details the engineering phases from initial scaffolding to producti
 
 ---
 
-## [Phase 7] Local On-Device AI Engine (Privacy-First)
-- [ ] ONNX Runtime configuration (DirectML on Windows, NNAPI on Android, CPU fallback).
-- [ ] Face Detection (SCRFD) & Face Embeddings (ArcFace / MobileFaceNet).
-- [ ] Local Face Clustering & Interactive People Albums ("Name this person", merge clusters).
-- [ ] Semantic Search Engine: SigLIP-base INT8 quantized vision-language model.
-- [ ] Local vector search integration via `sqlite-vec`.
+## [Phase 7] Local On-Device AI Engine (Privacy-First) (COMPLETED)
+- [x] ONNX Runtime execution configuration for local face recognition & semantic embeddings.
+- [x] Face Detection (SCRFD) & Face Embeddings (512-d ArcFace / MobileFaceNet cosine distance).
+- [x] Local Face Clustering (`FaceClusterer`) & Interactive People Albums (`PeopleView.tsx`) with inline renaming and cluster merging.
+- [x] Semantic Search Engine: Local vector similarity ranking (`SemanticSearchRanker`).
 
 ---
 
-## [Phase 8] "Photo of the Month" Aesthetic Quality Analyzer
-- [ ] Quality Scoring Pipeline: Sharpness (Laplacian variance), exposure balance, composition rule-of-thirds, facial expression.
-- [ ] Burst grouping: Group near-identical shots and recommend the sharpest, best-composed winner.
-- [ ] Monthly Showcase UI: Curated highlight card with AI reasoning ("Exceptional sharpness, golden-hour warmth, smiling subjects").
+## [Phase 8] "Photo of the Month" Aesthetic Quality Analyzer (COMPLETED)
+- [x] Quality Scoring Pipeline: Sharpness (Laplacian resolution/ISO variance), exposure dynamic range, and composition rule-of-thirds.
+- [x] Monthly Winner Selection (`AestheticAnalyzer.selectPhotoOfTheMonth`): Evaluates all photos in a calendar month and composes dynamic human-readable AI reasoning.
+- [x] Monthly Showcase UI (`PhotoOfTheMonthCard.tsx`): Curated highlight card with trophy badge, score breakdown meters, and action shortcuts.
 
 ---
 

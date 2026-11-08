@@ -32,6 +32,9 @@ import { MultiSelectTray } from './components/MultiSelectTray';
 import { TimelineScrubber } from './components/TimelineScrubber';
 import { MtpImportModal } from './components/MtpImportModal';
 import { SyncCenter } from './components/SyncCenter';
+import { PeopleView } from './components/PeopleView';
+import { PhotoOfTheMonthCard } from './components/PhotoOfTheMonthCard';
+import type { PersonCluster } from '@gallery/ai-engine';
 
 // Type declaration for Electron context bridge
 declare global {
@@ -92,6 +95,15 @@ export default function App() {
   const [activeMtpDevice, setActiveMtpDevice] = useState<any | null>(null);
   const [isMtpModalOpen, setIsMtpModalOpen] = useState(false);
   const [detectedPhotoCount, setDetectedPhotoCount] = useState<number>(0);
+
+  // Phase 7: Local AI Face Clusters
+  const [personClusters, setPersonClusters] = useState<PersonCluster[]>([]);
+
+  const handleRenamePerson = (clusterId: string, newName: string) => {
+    setPersonClusters((prev) =>
+      prev.map((c) => (c.id === clusterId ? { ...c, name: newName } : c))
+    );
+  };
 
   const checkMtpDevices = async () => {
     if (!window.electronAPI?.mtpDetectDevices) return;
@@ -710,15 +722,15 @@ export default function App() {
             />
           ) : activeTab === 'people' ? (
             /* People & Faces AI Clustering View */
-            <div className="h-full flex flex-col items-center justify-center text-center max-w-md mx-auto">
-              <div className="w-16 h-16 rounded-2xl bg-canvas-elevated border border-canvas-subtle flex items-center justify-center text-indigo-400 mb-4 shadow-xl">
-                <Users className="w-8 h-8" />
-              </div>
-              <h3 className="text-lg font-semibold text-slate-100">People & Face Recognition</h3>
-              <p className="text-sm text-slate-400 mt-1">
-                Zero Cloud AI. Face detection (SCRFD) and local clustering (ArcFace) run strictly on-device using ONNX Runtime with DirectML acceleration.
-              </p>
-            </div>
+            <PeopleView
+              photos={photos}
+              clusters={personClusters}
+              onSelectPhoto={(photo) => {
+                setSelectedPhoto(photo);
+                setFullscreenPhoto(photo);
+              }}
+              onRenamePerson={handleRenamePerson}
+            />
           ) : activeTab === 'sync' ? (
             /* SyncFlow P2P Engine View */
             <SyncCenter
@@ -728,6 +740,16 @@ export default function App() {
           ) : activeTab === 'calendar' ? (
             /* Calendar Grouping View */
             <div className="space-y-8">
+              {/* Photo of the Month Showcase Card */}
+              <PhotoOfTheMonthCard
+                photos={photos}
+                onOpenFullscreen={(p) => setFullscreenPhoto(p)}
+                onEditInStudio={(p) => {
+                  setSelectedPhoto(p);
+                  setIsEditorOpen(true);
+                }}
+              />
+
               {Object.entries(calendarGroups).map(([monthKey, groupPhotos]) => {
                 const year = monthKey.slice(0, 4);
                 return (
@@ -762,25 +784,37 @@ export default function App() {
             </div>
           ) : (
             /* Standard Grid View */
-            <div
-              className="grid gap-3"
-              style={{ gridTemplateColumns: `repeat(${gridDensity}, minmax(0, 1fr))` }}
-            >
-              {filteredPhotos.map((photo) => (
-                <PhotoCard
-                  key={photo.id}
-                  photo={photo}
-                  isSelected={selectedPhoto?.id === photo.id}
-                  isMultiSelected={selectedPhotoIds.has(photo.id)}
-                  onSelect={() => setSelectedPhoto(photo)}
-                  onToggleSelect={(e) => handleToggleSelectPhoto(photo.id, e)}
-                  onToggleFavorite={(e) => {
-                    e.stopPropagation();
-                    handleToggleFavorite(photo);
-                  }}
-                  onOpenFullscreen={() => setFullscreenPhoto(photo)}
-                />
-              ))}
+            <div>
+              {/* Photo of the Month Showcase Card */}
+              <PhotoOfTheMonthCard
+                photos={photos}
+                onOpenFullscreen={(p) => setFullscreenPhoto(p)}
+                onEditInStudio={(p) => {
+                  setSelectedPhoto(p);
+                  setIsEditorOpen(true);
+                }}
+              />
+
+              <div
+                className="grid gap-3"
+                style={{ gridTemplateColumns: `repeat(${gridDensity}, minmax(0, 1fr))` }}
+              >
+                {filteredPhotos.map((photo) => (
+                  <PhotoCard
+                    key={photo.id}
+                    photo={photo}
+                    isSelected={selectedPhoto?.id === photo.id}
+                    isMultiSelected={selectedPhotoIds.has(photo.id)}
+                    onSelect={() => setSelectedPhoto(photo)}
+                    onToggleSelect={(e) => handleToggleSelectPhoto(photo.id, e)}
+                    onToggleFavorite={(e) => {
+                      e.stopPropagation();
+                      handleToggleFavorite(photo);
+                    }}
+                    onOpenFullscreen={() => setFullscreenPhoto(photo)}
+                  />
+                ))}
+              </div>
             </div>
           )}
         </div>

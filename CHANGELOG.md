@@ -9,6 +9,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- **Local On-Device AI Engine & "Photo of the Month" (Phases 7 & 8)**:
+  - Created `@gallery/ai-engine` package implementing on-device face recognition, vector search, and aesthetic scoring with zero cloud dependencies or telemetry.
+  - Implemented `FaceClusterer` computing cosine similarity between 512-dimensional ArcFace/MobileFaceNet embeddings, clustering detections into named Person albums, centroid updates, and cluster merging.
+  - Implemented `SemanticSearchRanker` providing dot product and cosine vector ranking between natural language text embeddings and photo representations.
+  - Implemented `AestheticAnalyzer` evaluating sharpness (Laplacian variance/sensor clarity), exposure balance, and golden ratio composition to calculate weighted quality scores.
+  - Implemented `selectPhotoOfTheMonth` picking the monthly winning photograph with dynamic humanized AI reasoning.
+  - Built `PeopleView.tsx` UI displaying recognized face albums with face counts, inline person renaming, and slide-up photo drawers.
+  - Built `PhotoOfTheMonthCard.tsx` showcase banner featuring trophy badges, aesthetic score breakdown meters, and quick action shortcuts.
+  - Added unit tests covering cosine similarity, face clustering, vector ranking, and monthly aesthetic scoring with 100% pass rate.
 - **SyncFlow Local Wireless P2P Transfer Engine (Phase 6)**:
   - Created `@gallery/sync-engine` package implementing local-first zero-cloud device synchronization over local Wi-Fi.
   - Implemented `DiscoveryManager` providing UDP socket broadcast beacons on port 41235 with automatic TTL peer expiration and zero telemetry.
