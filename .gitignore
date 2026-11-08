@@ -1,0 +1,35 @@
+# Dependencies
+node_modules/
+.pnpm-store/
+
+# Build Outputs
+dist/
+build/
+out/
+dist-release/
+*.apk
+*.aab
+*.exe
+*.msi
+*.dmg
+*.zip
+*.tar.gz
+
+# Environment & Credentials
+.env
+.env.local
+*.keystore
+*.jks
+*.pfx
+
+# System & OS
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Logs & Caches
+*.log
+npm-debug.log*
+pnpm-debug.log*
+.turbo/
+.cache/
