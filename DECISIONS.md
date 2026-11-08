@@ -84,3 +84,4 @@ Users need professional image editing (crop, rotate, curves, HSL, adjustments, c
 1. **Edit Recipe Data Model**: Every edit is stored as a JSON parameters object (`brightness`, `contrast`, `curvesPoints: { r: [], g: [], b: [] }`, `cropRect`, `rotationAngle`).
 2. **GPU Shader Rendering**: Preview rendering is executed in real-time at 60 FPS using Skia Shaders (React Native Skia) on mobile and WebGL2 / GLSL fragment shaders on desktop.
 3. **Deterministic Export**: The original image is read only during export, processed through the offline shader pipeline at full camera resolution, and saved as a new file (e.g., `IMG_20261108_EDITED.jpg`). The original remains untouched.
+

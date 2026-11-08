@@ -1,0 +1,25 @@
+{
+  "name": "gallery-app-monorepo",
+  "version": "0.1.0-alpha",
+  "private": true,
+  "description": "Privacy-First AI Photo Gallery Ecosystem (Android + Windows)",
+  "packageManager": "pnpm@12.5.1",
+  "type": "module",
+  "scripts": {
+    "build": "turbo run build",
+    "dev": "turbo run dev",
+    "dev:windows": "pnpm --filter @gallery/windows dev",
+    "dev:android": "pnpm --filter @gallery/android start",
+    "test": "turbo run test",
+    "lint": "turbo run lint",
+    "typecheck": "turbo run typecheck",
+    "clean": "turbo run clean",
+    "release:notes": "node scripts/generate-release-notes.mjs"
+  },
+  "devDependencies": {
+    "turbo": "^2.4.4",
+    "typescript": "^5.8.2",
+    "@types/node": "^22.13.10"
+  }
+}
+

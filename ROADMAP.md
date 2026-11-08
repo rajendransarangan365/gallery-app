@@ -16,14 +16,15 @@ This roadmap details the engineering phases from initial scaffolding to producti
 
 ---
 
-## [Phase 1] Monorepo Workspace & Core Shell
-- [ ] Initialize `pnpm-workspace.yaml`, root `package.json`, and `turbo.json`.
-- [ ] Scaffold `packages/shared` (types, interfaces, validation schemas, utility functions).
-- [ ] Scaffold `packages/ui-tokens` (Tailwind design tokens, dark photography theme, typography, color constants).
-- [ ] Scaffold `packages/database` (SQLite schema, Kysely / Drizzle type-safe ORM, migration runner).
-- [ ] Scaffold `apps/windows` (Electron 30+, Vite 5, React 18, Tailwind CSS, Lucide React).
-- [ ] Scaffold `apps/android` (React Native 0.74+, Expo Config Plugins, React Native Reanimated 3, Gesture Handler).
-- [ ] Verify both application shells launch with zero compilation errors.
+## [Phase 1] Monorepo Workspace & Core Shell (COMPLETED)
+- [x] Initialize `pnpm-workspace.yaml`, root `package.json`, and `turbo.json`.
+- [x] Scaffold `packages/shared` (types, interfaces, validation schemas, utility functions).
+- [x] Scaffold `packages/ui-tokens` (Tailwind design tokens, dark photography theme, typography, color constants).
+- [x] Scaffold `packages/database` (SQLite schema, Kysely / Drizzle type-safe ORM, migration runner).
+- [x] Scaffold `packages/security` (canonical directory exclusion manager, AES-256-GCM cipher engine, unit tests).
+- [x] Scaffold `apps/windows` (Electron 30+, Vite 6, React 18, Tailwind CSS, Lucide React).
+- [x] Scaffold `apps/android` (React Native 0.76+, Expo 52, TypeScript).
+- [x] Verify both application shells launch and build with zero compilation errors (17/17 tasks passed).
 
 ---
 
@@ -118,3 +119,4 @@ This roadmap details the engineering phases from initial scaffolding to producti
 - [ ] Automatic building of Windows `.exe` installer (NSIS) and Android `.apk`.
 - [ ] Automated execution of `scripts/generate-release-notes.mjs`.
 - [ ] Automated artifact publishing to public releases repository with SHA-256 checksums.
+

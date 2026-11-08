@@ -161,3 +161,4 @@ if (fs.existsSync(changelogPath)) {
     console.log(`[SUCCESS] Updated ${changelogPath}`);
   }
 }
+

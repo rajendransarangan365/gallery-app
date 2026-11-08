@@ -1483,9 +1483,7 @@ Require successful tests and acceptance criteria.
 
 ## Repository 1: Private Source Code
 
-Example:
-
-photo-gallery-core
+URL: `https://github.com/rajendransarangan365/gallery-app.git`
 
 Contains:
 
@@ -1503,9 +1501,7 @@ Never make this repository public.
 
 ## Repository 2: Public Releases
 
-Example:
-
-photo-gallery-releases
+URL: `https://github.com/rajendransarangan365/gallery-app-release.git`
 
 Contains only:
 
@@ -1532,7 +1528,7 @@ Private repository:
    - Build Android Universal Release APK (`PhotoGallery-release.apk`).
    - Run `scripts/generate-release-notes.mjs --version $TAG` to parse commit delta.
    - Calculate SHA-256 cryptographic hashes for all build artifacts into `SHA256SUMS.txt`.
-   - Publish tagged GitHub Release directly to the public repository (`photo-gallery-releases`) using `PUBLIC_REPO_TOKEN`.
+   - Publish tagged GitHub Release directly to the public repository (`rajendransarangan365/gallery-app-release`) using `PUBLIC_REPO_TOKEN`.
    - Zero source code is uploaded to the public repository.
 
 Use GitHub Actions with semantic versioning:

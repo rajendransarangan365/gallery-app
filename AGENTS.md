@@ -83,7 +83,8 @@ We maintain strict repository separation:
 
 ```text
 ┌─────────────────────────────────────────┐
-│ PRIVATE REPOSITORY: photo-gallery-core  │
+│ PRIVATE REPOSITORY:                     │
+│ rajendransarangan365/gallery-app        │
 │ - Full TypeScript monorepo source       │
 │ - Native modules (Android / Windows)    │
 │ - Database migrations & AI model configs │
@@ -102,7 +103,8 @@ We maintain strict repository separation:
                      │ (Authenticated Push via PAT / Deploy Key)
                      ▼
 ┌─────────────────────────────────────────┐
-│ PUBLIC REPOSITORY: photo-gallery-app    │
+│ PUBLIC REPOSITORY:                      │
+│ rajendransarangan365/gallery-app-release│
 │ - ZERO source code                      │
 │ - GitHub Releases with attached:        │
 │   • PhotoGallery-Setup-x64.exe          │
@@ -124,3 +126,4 @@ Think like a Senior UI/UX Designer:
 - **Fluid Gestures**: 60/120 FPS pinch-to-zoom grid density transitions (1 column -> 2 columns -> 3 columns -> 5 columns).
 - **Physics**: Shared-element hero animations between grid thumbnails and full-screen viewer. Smooth swipe-down dismissal with rubber-band resistance.
 - **State Feedback**: Never leave the user hanging. Show micro-animations during AI indexing, USB detection, and Wi-Fi sync.
+

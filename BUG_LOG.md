@@ -14,3 +14,4 @@ This file tracks all defects, regressions, unexpected behaviors, and edge cases 
 - **P1 - Critical**: Core feature malfunction (e.g., photo scanner skips valid files, MTP detection fails, sync integrity check fails).
 - **P2 - Major**: UI layout breakdown, animation stutter below 30 FPS, missing EXIF parsing on certain cameras.
 - **P3 - Minor**: Visual cosmetic glitch, typos in release notes, non-critical translation string missing.
+

@@ -23,3 +23,4 @@ Welcome to the initial alpha foundation release of the **Privacy-First AI Photo 
 - `PhotoGallery-Setup-0.1.0-alpha.exe` (Windows 10/11 x64 Installer) — *Pending Build Phase*
 - `PhotoGallery-0.1.0-alpha.apk` (Android 10+ Universal APK) — *Pending Build Phase*
 - `SHA256SUMS.txt` (Integrity Checksums)
+

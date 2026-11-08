@@ -1,0 +1,22 @@
+{
+  "expo": {
+    "name": "Photo Gallery",
+    "slug": "photo-gallery",
+    "version": "0.1.0",
+    "orientation": "portrait",
+    "userInterfaceStyle": "dark",
+    "android": {
+      "package": "com.photogallery.app",
+      "adaptiveIcon": {
+        "backgroundColor": "#0A0C10"
+      },
+      "permissions": [
+        "READ_MEDIA_IMAGES",
+        "READ_MEDIA_VIDEO",
+        "ACCESS_MEDIA_LOCATION",
+        "USE_BIOMETRIC"
+      ]
+    }
+  }
+}
+

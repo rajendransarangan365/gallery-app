@@ -7,6 +7,9 @@ dist/
 build/
 out/
 dist-release/
+test/*.js
+test/*.d.ts
+test/*.map
 *.apk
 *.aab
 *.exe
@@ -33,3 +36,4 @@ npm-debug.log*
 pnpm-debug.log*
 .turbo/
 .cache/
+

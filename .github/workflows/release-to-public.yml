@@ -164,8 +164,8 @@ jobs:
       - name: Publish to Public Release Repository
         uses: softprops/action-gh-release@v2
         with:
-          repository: ${{ secrets.PUBLIC_RELEASE_REPO }} # e.g., 'your-username/photo-gallery-app'
-          token: ${{ secrets.PUBLIC_REPO_TOKEN }} # Personal Access Token with repo scope
+          repository: rajendransarangan365/gallery-app-release
+          token: ${{ secrets.PUBLIC_REPO_TOKEN }} # Personal Access Token with repo scope for public release repo
           tag_name: ${{ github.ref_name }}
           name: Release ${{ github.ref_name }}
           body_path: RELEASE_NOTES.md
@@ -173,3 +173,4 @@ jobs:
             dist-release/*
           draft: false
           prerelease: false
+
