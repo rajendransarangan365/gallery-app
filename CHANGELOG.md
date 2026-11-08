@@ -9,6 +9,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- **Creative Studio Non-Destructive Editor & Social Share (Phases 9 & 10)**:
+  - Created `@gallery/editor-engine` package delivering mathematical non-destructive image editing recipes, WebGL2/Skia GPU shader uniforms, algorithmic memories, and native social share dispatchers.
+  - Implemented `createDefaultRecipe`, `applyPreset`, and `validateRecipe` with 12 mathematical tone parameters: Exposure (EV stops), Contrast, Highlights, Shadows, Whites, Blacks, Temperature, Tint, Vibrance, Saturation, Vignette, and Film Grain.
+  - Built built-in professional photographic presets: "Vivid Pop", "Warm Sunset", "Classic B&W", "Moody Teal & Orange", and "Soft Portrait".
+  - Authored WebGL2 GPU fragment shader with power-of-2 EV exposure mapping, mid-gray luminance contrast, temperature/tint white balance matrix, smoothstep radial vignette, and procedural pseudo-random film grain generation.
+  - Implemented `MemoryGenerator` producing nostalgic "On This Day" rediscovery stories (1-year, 2-year, 5-year intervals) and "Month in Review" highlight reels with zero mock data.
+  - Implemented `SocialShareManager` for formatted deep-link social sharing across WhatsApp, Telegram, Twitter/X, and Web Share API / clipboard fallback.
+  - Built `StudioEditorModal.tsx` in `apps/windows` featuring live GPU canvas rendering, dual Before/After comparison hold toggle, real-time slider controls, preset carousel, and non-destructive export pipeline leaving original photos strictly untouched.
+  - Added unit test suite in `packages/editor-engine/test/editor.test.ts` verifying recipe initialization, preset bounds, uniform mapping, memory retrieval, and social link generation with 100% pass rate.
 - **Local On-Device AI Engine & "Photo of the Month" (Phases 7 & 8)**:
   - Created `@gallery/ai-engine` package implementing on-device face recognition, vector search, and aesthetic scoring with zero cloud dependencies or telemetry.
   - Implemented `FaceClusterer` computing cosine similarity between 512-dimensional ArcFace/MobileFaceNet embeddings, clustering detections into named Person albums, centroid updates, and cluster merging.

@@ -34,6 +34,7 @@ import { MtpImportModal } from './components/MtpImportModal';
 import { SyncCenter } from './components/SyncCenter';
 import { PeopleView } from './components/PeopleView';
 import { PhotoOfTheMonthCard } from './components/PhotoOfTheMonthCard';
+import { StudioEditorModal } from './components/StudioEditorModal';
 import type { PersonCluster } from '@gallery/ai-engine';
 
 // Type declaration for Electron context bridge
@@ -910,67 +911,16 @@ export default function App() {
         </div>
       )}
 
-      {/* 5. Studio Editor Modal */}
-      {isEditorOpen && (
-        <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-8">
-          <div className="w-full max-w-4xl bg-canvas-elevated border border-canvas-subtle rounded-2xl overflow-hidden shadow-2xl flex flex-col h-[80vh]">
-            <div className="px-6 py-4 border-b border-canvas-subtle flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <Sliders className="w-5 h-5 text-blue-400" />
-                <h3 className="font-semibold text-slate-100">
-                  Creative Studio • Non-Destructive Editor {selectedPhoto ? `(${selectedPhoto.fileName})` : ''}
-                </h3>
-              </div>
-              <button onClick={() => setIsEditorOpen(false)} className="text-slate-400 hover:text-white text-sm">
-                ✕ Close
-              </button>
-            </div>
-            <div className="flex-1 flex overflow-hidden">
-              <div className="flex-1 bg-black flex items-center justify-center p-6 relative">
-                <div className="text-center text-slate-500">
-                  <Eye className="w-12 h-12 mx-auto mb-2 opacity-50" />
-                  <p className="text-sm">Real-time GPU Shader Preview (WebGL2 / Skia)</p>
-                </div>
-              </div>
-              <div className="w-80 border-l border-canvas-subtle bg-canvas-base p-6 space-y-6 overflow-y-auto">
-                <div>
-                  <h4 className="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-4">Tone Adjustments</h4>
-                  <div className="space-y-4">
-                    <SliderControl label="Exposure" min={-100} max={100} defaultValue={0} />
-                    <SliderControl label="Contrast" min={-100} max={100} defaultValue={0} />
-                    <SliderControl label="Highlights" min={-100} max={100} defaultValue={0} />
-                    <SliderControl label="Shadows" min={-100} max={100} defaultValue={0} />
-                  </div>
-                </div>
-                <div>
-                  <h4 className="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-4">Color Grading</h4>
-                  <div className="space-y-4">
-                    <SliderControl label="Temperature" min={-100} max={100} defaultValue={0} />
-                    <SliderControl label="Tint" min={-100} max={100} defaultValue={0} />
-                    <SliderControl label="Vibrance" min={-100} max={100} defaultValue={0} />
-                  </div>
-                </div>
-              </div>
-            </div>
-            <div className="px-6 py-3 border-t border-canvas-subtle bg-canvas-elevated flex items-center justify-between">
-              <span className="text-xs text-slate-400 font-mono">Original photograph remains untouched</span>
-              <div className="flex items-center gap-3">
-                <button onClick={() => setIsEditorOpen(false)} className="px-4 py-2 text-xs text-slate-300 hover:text-white">
-                  Discard
-                </button>
-                <button
-                  onClick={() => {
-                    alert('Exporting full-resolution copy with baked shader adjustments...');
-                    setIsEditorOpen(false);
-                  }}
-                  className="px-4 py-2 bg-blue-600 hover:bg-blue-500 text-white rounded-lg text-xs font-semibold"
-                >
-                  Export Copy
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
+      {/* 5. Studio Editor & Social Share Modal */}
+      {isEditorOpen && (selectedPhoto || photos.length > 0) && (
+        <StudioEditorModal
+          photo={selectedPhoto || photos[0]}
+          onClose={() => setIsEditorOpen(false)}
+          onExportCopy={(p, adj) => {
+            alert(`Exporting copy of "${p.fileName}" with baked shader adjustments. Original photo remains 100% untouched.`);
+            setIsEditorOpen(false);
+          }}
+        />
       )}
 
       {/* 6. Multi-Select Floating Action Dock */}
@@ -1135,25 +1085,5 @@ function NavItem({ icon, label, active, badge, onClick }: { icon: React.ReactNod
         </span>
       )}
     </button>
-  );
-}
-
-function SliderControl({ label, min, max, defaultValue }: { label: string; min: number; max: number; defaultValue: number }) {
-  const [val, setVal] = useState(defaultValue);
-  return (
-    <div>
-      <div className="flex justify-between text-xs text-slate-300 mb-1">
-        <span>{label}</span>
-        <span className="font-mono text-slate-400">{val > 0 ? `+${val}` : val}</span>
-      </div>
-      <input
-        type="range"
-        min={min}
-        max={max}
-        value={val}
-        onChange={(e) => setVal(Number(e.target.value))}
-        className="w-full accent-blue-500 h-1.5 bg-canvas-subtle rounded-lg cursor-pointer"
-      />
-    </div>
   );
 }

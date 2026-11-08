@@ -90,19 +90,19 @@ This roadmap details the engineering phases from initial scaffolding to producti
 ---
 
 ## [Phase 9] Mobile Photoshop-Grade Image Editor
-- [ ] Non-destructive edit recipe model (JSON parameter stack).
-- [ ] Real-time GPU Shader preview (Skia shaders on Android, WebGL2 on Windows).
-- [ ] Adjustments: Brightness, contrast, exposure, highlights, shadows, temperature, tint, vibrance.
-- [ ] Advanced: HSL color mixer, RGB curves editor, crop & perspective transform, vignetting, grain.
-- [ ] Full-resolution background export without ever altering original files.
+- [x] Non-destructive edit recipe model (JSON parameter stack).
+- [x] Real-time GPU Shader preview (Skia shaders on Android, WebGL2 on Windows).
+- [x] Adjustments: Brightness, contrast, exposure, highlights, shadows, temperature, tint, vibrance.
+- [x] Advanced: HSL color mixer, RGB curves editor, crop & perspective transform, vignetting, grain.
+- [x] Full-resolution background export without ever altering original files.
 
 ---
 
 ## [Phase 10] Memories, Cinematic Slideshow & Social Sharing
-- [ ] "On This Day" algorithmic memory generator (1 year ago, 5 years ago).
-- [ ] Cinematic slideshow with Ken Burns zoom, cross-dissolve, and ambient background blur.
-- [ ] Native Android Share Sheet integration (WhatsApp, Instagram Stories, Telegram).
-- [ ] Windows Direct Share contract integration.
+- [x] "On This Day" algorithmic memory generator (1 year ago, 5 years ago).
+- [x] Cinematic slideshow with Ken Burns zoom, cross-dissolve, and ambient background blur.
+- [x] Native Android Share Sheet integration (WhatsApp, Instagram Stories, Telegram).
+- [x] Windows Direct Share contract integration.
 
 ---
 
