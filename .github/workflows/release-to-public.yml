@@ -67,7 +67,7 @@ jobs:
         run: pnpm turbo run build
 
       - name: Package Windows Executable (NSIS Installer)
-        run: npx --yes electron-builder --win nsis:x64 --config.directories.output=dist-installer
+        run: npx --yes electron-builder --win nsis:x64 --publish never --config.directories.output=dist-installer
         working-directory: apps/windows
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}

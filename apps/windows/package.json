@@ -4,6 +4,11 @@
   "private": true,
   "type": "module",
   "description": "Privacy-First AI Photo Gallery Windows Desktop Application",
+  "author": "rajendransarangan365",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/rajendransarangan365/gallery-app.git"
+  },
   "main": "./dist-electron/main/index.js",
   "scripts": {
     "dev": "vite",
