@@ -5,7 +5,8 @@ This file tracks all defects, regressions, unexpected behaviors, and edge cases 
 
 | Bug ID | Date | Severity | Component | Summary | Status | Resolution / Fix Details |
 |---|---|---|---|---|---|---|
-| *None* | 2026-11-08 | — | — | Clean slate. System initialized in Phase 0. | Verified | Foundation files established. |
+| **BUG-001** | 2026-11-08 | P1 - Critical | Android CI / Autolinking | `PackageList.java` autolinking generated `import expo.core.ExpoModulesPackage;` causing compilation failure | Resolved | Configured `apps/android/react-native.config.js` and `react-native.config.js` with explicit `packageImportPath: 'import expo.modules.ExpoModulesPackage;'` and `packageInstance: 'new ExpoModulesPackage()'`. Verified via CLI autolinking generator. |
+
 
 ---
 

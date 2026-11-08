@@ -417,8 +417,37 @@ Implement Phase 10 nostalgic memory generation and native social sharing capabil
 - **Task ID:** `TASK-012`
 - **Scope:** Phase 11 & Phase 12 — Performance Hardening, Virtualization & Dual-Repository CI/CD Release Automation Verification.
 
+---
 
+## [TASK-012] — Phase 12: Dual-Repository CI/CD Release Pipeline Verification (Windows Installer)
+- **Timestamp:** 2026-11-08T21:45:00+05:30
+- **Author:** Lead AI Software Architect & Senior Systems Engineer
+- **Status:** COMPLETED
+- **Deliverable:** `PhotoGallery.Setup.0.1.0-alpha.exe` (Windows NSIS x64 Installer, 86.24 MB) published to `rajendransarangan365/gallery-app-release`.
 
+---
 
+## [TASK-013] — Phase 12: Android APK Autolinking Resolution & Release Pipeline
+- **Timestamp:** 2026-11-08T22:40:00+05:30
+- **Author:** Lead AI Software Architect & Senior Systems Engineer
+- **Status:** COMPLETED
 
+### 1. Scope & Objective
+Diagnose and resolve the `Build Android APK` failure on GitHub Actions CI runner (`run 42501483246`) where `compileReleaseJavaWithJavac` failed due to missing symbol `expo.core.ExpoModulesPackage` in autolinked `PackageList.java`.
+
+### 2. Actions Performed
+1. Extracted and analyzed full runner job logs from GitHub Actions API.
+2. Traced the autolinking pipeline: `expo-modules-autolinking` uses `findProjectRootSync()` which detected monorepo root rather than `apps/android`. In monorepo root, `android/settings.gradle` was missing, causing Expo's platform autolinking overrides to be skipped and falling back to community CLI heuristic (`namespace "expo.core"` in `expo/android/build.gradle`).
+3. Created `apps/android/react-native.config.js` and root `react-native.config.js` explicitly specifying:
+   - `packageImportPath: 'import expo.modules.ExpoModulesPackage;'`
+   - `packageInstance: 'new ExpoModulesPackage()'`
+4. Verified autolinking JSON output directly via `expo-modules-autolinking` CLI execution: confirms `import expo.modules.ExpoModulesPackage;` is generated.
+5. Recorded defect in `BUG_LOG.md`.
+
+### 3. Verification & Evidence
+- Autolinking command executed in `apps/android/android` output verified clean `packageImportPath: import expo.modules.ExpoModulesPackage;`.
+- Monorepo tree validated.
+
+### 4. Next Immediate Task
+- Tag `v1.0.10`, push to GitHub, and monitor Actions runner for complete dual-package release (`.exe` + `.apk`).
 
