@@ -41,4 +41,23 @@ contextBridge.exposeInMainWorld('electronAPI', {
     ipcRenderer.on('mtp:progress', handler);
     return () => ipcRenderer.removeListener('mtp:progress', handler);
   },
+  // Real SyncFlow Server APIs
+  syncGetStatus: (): Promise<any> => ipcRenderer.invoke('sync:getStatus'),
+  syncRegeneratePin: (): Promise<string> => ipcRenderer.invoke('sync:regeneratePin'),
+  syncRegisterPhotos: (photos: PhotoItem[]): Promise<boolean> => ipcRenderer.invoke('sync:registerPhotos', photos),
+  onSyncFileReceived: (callback: (data: { photo: PhotoItem; fileName: string; fileSize: number }) => void) => {
+    const handler = (_event: unknown, data: any) => callback(data);
+    ipcRenderer.on('sync:fileReceived', handler);
+    return () => ipcRenderer.removeListener('sync:fileReceived', handler);
+  },
+  onSyncPeerFound: (callback: (peer: any) => void) => {
+    const handler = (_event: unknown, peer: any) => callback(peer);
+    ipcRenderer.on('sync:peerFound', handler);
+    return () => ipcRenderer.removeListener('sync:peerFound', handler);
+  },
+  onSyncPeerPaired: (callback: (peer: any) => void) => {
+    const handler = (_event: unknown, peer: any) => callback(peer);
+    ipcRenderer.on('sync:peerPaired', handler);
+    return () => ipcRenderer.removeListener('sync:peerPaired', handler);
+  },
 });

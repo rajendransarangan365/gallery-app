@@ -37,34 +37,7 @@ import { PhotoOfTheMonthCard } from './components/PhotoOfTheMonthCard';
 import { StudioEditorModal } from './components/StudioEditorModal';
 import type { PersonCluster } from '@gallery/ai-engine';
 
-// Type declaration for Electron context bridge
-declare global {
-  interface Window {
-    electronAPI?: {
-      openDirectory: () => Promise<string | null>;
-      scanDirectory: (path: string) => Promise<PhotoItem[]>;
-      onScanProgress: (callback: (progress: any) => void) => () => void;
-      vaultIsConfigured: () => Promise<boolean>;
-      vaultSetup: (pin: string) => Promise<boolean>;
-      vaultUnlock: (pin: string) => Promise<boolean>;
-      vaultLock: () => Promise<boolean>;
-      vaultList: () => Promise<any[]>;
-      vaultImport: (filePath: string) => Promise<any>;
-      vaultExport: (itemId: string, destDir: string) => Promise<string>;
-      exclusionsList: () => Promise<any[]>;
-      exclusionsAdd: (folderPath: string) => Promise<any>;
-      exclusionsRemove: (folderPath: string) => Promise<boolean>;
-      // Windows MTP APIs
-      mtpDetectDevices: () => Promise<any[]>;
-      mtpScanDevicePhotos: (devicePath: string) => Promise<any[]>;
-      mtpTransferPhotos: (
-        candidates: any[],
-        destinationDir: string
-      ) => Promise<{ transferredPhotos: PhotoItem[]; skippedCount: number; failedCount: number }>;
-      onMtpProgress: (callback: (progress: any) => void) => () => void;
-    };
-  }
-}
+import './types.d';
 
 export default function App() {
   const [activeTab, setActiveTab] = useState<'photos' | 'calendar' | 'map' | 'people' | 'vault' | 'sync' | 'exclusions'>('photos');

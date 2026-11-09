@@ -1,6 +1,6 @@
 /**
  * apps/windows/src/main/index.ts
- * Electron Main Process - Native Windows Integration
+ * Electron Main Process - Native Windows Integration & SyncFlow Server
  */
 
 import { app, BrowserWindow, ipcMain, dialog } from 'electron';
@@ -9,21 +9,33 @@ import { fileURLToPath } from 'node:url';
 import { ExclusionManager } from '@gallery/security';
 import { PhotoIndexer, MtpManager, type MtpPhotoCandidate } from '@gallery/photo-engine';
 import { VaultManager, ExclusionRegistry } from '@gallery/vault-engine';
+import { DesktopSyncServer } from './sync-server.js';
+import type { PhotoItem } from '@gallery/shared';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 let mainWindow: BrowserWindow | null = null;
+let currentPhotos: PhotoItem[] = [];
 const exclusionManager = new ExclusionManager();
 const vaultManager = new VaultManager();
 const exclusionRegistry = new ExclusionRegistry(exclusionManager);
 
+const syncServer = new DesktopSyncServer(
+  { exclusionManager },
+  () => mainWindow,
+  () => currentPhotos
+);
+
 function createWindow() {
+  const iconPath = path.join(__dirname, '../../build/icon.png');
+
   mainWindow = new BrowserWindow({
     width: 1280,
     height: 800,
     minWidth: 960,
     minHeight: 600,
+    icon: iconPath,
     backgroundColor: '#0A0C10',
     titleBarStyle: 'hidden',
     titleBarOverlay: {
@@ -46,8 +58,15 @@ function createWindow() {
   }
 }
 
-app.whenReady().then(() => {
+app.whenReady().then(async () => {
   createWindow();
+
+  // Start SyncFlow HTTP server & UDP beacon
+  try {
+    await syncServer.start();
+  } catch (err) {
+    console.warn('[DesktopSyncServer] Startup notice:', err);
+  }
 
   // IPC Handler: Open native folder selection dialog
   ipcMain.handle('dialog:openDirectory', async () => {
@@ -62,12 +81,15 @@ app.whenReady().then(() => {
   ipcMain.handle('scanner:scanDirectory', async (_event: unknown, targetPath: string) => {
     if (!targetPath) return [];
 
-    return PhotoIndexer.indexDirectory(targetPath, {
+    const scanned = await PhotoIndexer.indexDirectory(targetPath, {
       exclusionManager,
       onProgress: (progress) => {
         mainWindow?.webContents.send('scanner:progress', progress);
       },
     });
+
+    currentPhotos = scanned;
+    return scanned;
   });
 
   // Vault IPC Handlers
@@ -121,11 +143,20 @@ app.whenReady().then(() => {
     }
   );
 
+  // SyncFlow Real Server IPC Handlers
+  ipcMain.handle('sync:getStatus', () => syncServer.getStatus());
+  ipcMain.handle('sync:regeneratePin', () => syncServer.regeneratePin());
+  ipcMain.handle('sync:registerPhotos', (_event: unknown, photos: PhotoItem[]) => {
+    currentPhotos = photos;
+    return true;
+  });
+
   app.on('activate', () => {
     if (BrowserWindow.getAllWindows().length === 0) createWindow();
   });
 });
 
 app.on('window-all-closed', () => {
+  syncServer.stop();
   if (process.platform !== 'darwin') app.quit();
 });

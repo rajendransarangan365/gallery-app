@@ -32,5 +32,24 @@ contextBridge.exposeInMainWorld('electronAPI', {
         ipcRenderer.on('mtp:progress', handler);
         return () => ipcRenderer.removeListener('mtp:progress', handler);
     },
+    // Real SyncFlow Server APIs
+    syncGetStatus: () => ipcRenderer.invoke('sync:getStatus'),
+    syncRegeneratePin: () => ipcRenderer.invoke('sync:regeneratePin'),
+    syncRegisterPhotos: (photos) => ipcRenderer.invoke('sync:registerPhotos', photos),
+    onSyncFileReceived: (callback) => {
+        const handler = (_event, data) => callback(data);
+        ipcRenderer.on('sync:fileReceived', handler);
+        return () => ipcRenderer.removeListener('sync:fileReceived', handler);
+    },
+    onSyncPeerFound: (callback) => {
+        const handler = (_event, peer) => callback(peer);
+        ipcRenderer.on('sync:peerFound', handler);
+        return () => ipcRenderer.removeListener('sync:peerFound', handler);
+    },
+    onSyncPeerPaired: (callback) => {
+        const handler = (_event, peer) => callback(peer);
+        ipcRenderer.on('sync:peerPaired', handler);
+        return () => ipcRenderer.removeListener('sync:peerPaired', handler);
+    },
 });
 //# sourceMappingURL=index.js.map

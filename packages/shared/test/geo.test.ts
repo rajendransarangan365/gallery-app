@@ -4,8 +4,8 @@
 
 import { describe, it } from 'node:test';
 import assert from 'node:assert';
-import type { PhotoItem } from '../dist/types/photo.js';
-import { clusterPhotosByLocation } from '../dist/utils/geo.js';
+import type { PhotoItem } from '../src/types/photo.ts';
+import { clusterPhotosByLocation } from '../src/utils/geo.ts';
 
 describe('Location Clustering & Geo Analysis', () => {
   it('should cluster photos by geographic coordinates and cities', () => {
