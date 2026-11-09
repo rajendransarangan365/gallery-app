@@ -1,6 +1,6 @@
 {
   "name": "gallery-app-monorepo",
-  "version": "1.0.22",
+  "version": "1.0.23",
   "private": true,
   "description": "Privacy-First AI Photo Gallery Ecosystem (Android + Windows)",
   "packageManager": "pnpm@9.15.4",

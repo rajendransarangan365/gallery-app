@@ -1,18 +1,16 @@
 # RELEASE NOTES
 
-## Version 1.0.22 — 2026-11-09
-
-### 🚀 Features & Enhancements
-- **version-sync**: synchronize version `1.0.22` across all packages, Android build configurations (`versionCode 22`), and desktop sync runtime
-- **ui-icons**: complete Lucide vector icon pack integration across mobile and desktop apps (100% zero-emoji compliant)
+## Version 1.0.23 — 2026-11-09
 
 ### 🐛 Bug Fixes
-- **connection**: resolve Android Wi-Fi cleartext communication blocking on port 41236 with local subnet network security config
-- **sync-server**: resolve desktop sync server multi-adapter IP resolution, filtering out virtual adapters (WSL, Hyper-V, VirtualBox) to prioritize active physical Wi-Fi IP
-- **mtp-usb**: resolve Windows MTP / USB file transfer PowerShell quote parsing using base64 `-EncodedCommand` and WPD Shell traversal
-- **udp-discovery**: enable native Kotlin UDP multicast discovery beacon probe on Android with `WifiManager.MulticastLock`
+- **sync-center**: resolve issue where `SyncFlow Center` view was masked by the zero-photo empty gallery state, allowing immediate device pairing and Wi-Fi radar access on fresh installs
+- **phone-connect**: add direct USB Mobile Attached card (`Review & Transfer Photos`), OriginOS 3-Step Phone Wireless Connection Guide, and Direct Phone Wi-Fi Ping tool in SyncCenter
+
+### 🚀 Features & Enhancements
+- **empty-gallery**: provide direct shortcuts in empty gallery state to scan PC folders, import from connected USB phone, or open SyncFlow Wi-Fi
+- **version-sync**: synchronize version `1.0.23` across all monorepo packages, Android build configurations (`versionCode 23`), and desktop sync runtime
 
 ### 📦 Release Assets
-- `PhotoGallery-Setup-1.0.22.exe` (Windows 10/11 x64 NSIS Installer)
-- `PhotoGallery-1.0.22.apk` (Android Universal Release APK)
+- `PhotoGallery-Setup-1.0.23.exe` (Windows 10/11 x64 NSIS Installer)
+- `PhotoGallery-1.0.23.apk` (Android Universal Release APK)
 - `SHA256SUMS.txt` (Cryptographic Checksums)

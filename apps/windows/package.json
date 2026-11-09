@@ -1,6 +1,6 @@
 {
   "name": "@gallery/windows",
-  "version": "1.0.22",
+  "version": "1.0.23",
   "private": true,
   "packageManager": "pnpm@9.15.4",
   "type": "module",
