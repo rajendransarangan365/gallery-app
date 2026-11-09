@@ -60,4 +60,16 @@ contextBridge.exposeInMainWorld('electronAPI', {
     ipcRenderer.on('sync:peerPaired', handler);
     return () => ipcRenderer.removeListener('sync:peerPaired', handler);
   },
+  // REA Reverse Engineering APIs
+  reaOpenFile: (): Promise<string | null> => ipcRenderer.invoke('rea:openFile'),
+  reaInspectFile: (filePath: string): Promise<any> => ipcRenderer.invoke('rea:inspectFile', filePath),
+  reaExtractAssets: (archivePath: string, destinationDir?: string): Promise<{ extractedPaths: string[]; outputDirectory: string }> =>
+    ipcRenderer.invoke('rea:extractAssets', archivePath, destinationDir),
+  reaRunCli: (command: string, args: string[]): Promise<{ exitCode: number }> =>
+    ipcRenderer.invoke('rea:runCli', command, args),
+  onReaCliOutput: (callback: (chunk: string) => void) => {
+    const handler = (_event: unknown, chunk: string) => callback(chunk);
+    ipcRenderer.on('rea:cliOutput', handler);
+    return () => ipcRenderer.removeListener('rea:cliOutput', handler);
+  },
 });

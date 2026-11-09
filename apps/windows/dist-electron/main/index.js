@@ -9,6 +9,7 @@ import { ExclusionManager } from '@gallery/security';
 import { PhotoIndexer, MtpManager } from '@gallery/photo-engine';
 import { VaultManager, ExclusionRegistry } from '@gallery/vault-engine';
 import { DesktopSyncServer } from './sync-server.js';
+import { ReaEngine } from './rea-engine.js';
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 let mainWindow = null;
@@ -128,6 +129,36 @@ app.whenReady().then(async () => {
     ipcMain.handle('sync:registerPhotos', (_event, photos) => {
         currentPhotos = photos;
         return true;
+    });
+    // Reverse Engineer Anything (REA) IPC Handlers
+    ipcMain.handle('rea:openFile', async () => {
+        if (!mainWindow)
+            return null;
+        const result = await dialog.showOpenDialog(mainWindow, {
+            title: 'Select Binary, APK, or SQLite Database to Inspect',
+            filters: [
+                { name: 'All Inspectable Targets', extensions: ['apk', 'sqlite', 'db', 'sqlite3', 'exe', 'dll', 'asar', 'zip'] },
+                { name: 'Android Packages (*.apk)', extensions: ['apk', 'zip'] },
+                { name: 'SQLite Databases (*.db, *.sqlite)', extensions: ['db', 'sqlite', 'sqlite3'] },
+                { name: 'Windows Binaries (*.exe, *.dll)', extensions: ['exe', 'dll'] },
+                { name: 'All Files', extensions: ['*'] }
+            ],
+            properties: ['openFile']
+        });
+        return result.canceled ? null : result.filePaths[0];
+    });
+    ipcMain.handle('rea:inspectFile', async (_event, targetPath) => {
+        return ReaEngine.inspectFile(targetPath);
+    });
+    ipcMain.handle('rea:extractAssets', async (_event, archivePath, destinationDir) => {
+        const outDir = destinationDir || path.join(app.getPath('pictures'), 'PhotoGallery_Extracted_Assets');
+        const extracted = await ReaEngine.extractAllAssets(archivePath, outDir);
+        return { extractedPaths: extracted, outputDirectory: outDir };
+    });
+    ipcMain.handle('rea:runCli', async (_event, command, args) => {
+        return ReaEngine.runReaCli(command, args, (chunk) => {
+            mainWindow?.webContents.send('rea:cliOutput', chunk);
+        });
     });
     app.on('activate', () => {
         if (BrowserWindow.getAllWindows().length === 0)

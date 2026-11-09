@@ -42,6 +42,12 @@ export interface ElectronAPI {
   onSyncFileReceived?: (callback: (data: { photo: PhotoItem; fileName: string; fileSize: number }) => void) => () => void;
   onSyncPeerFound?: (callback: (peer: SyncPeerDescriptor) => void) => () => void;
   onSyncPeerPaired?: (callback: (peer: any) => void) => () => void;
+  // REA Reverse Engineering APIs
+  reaOpenFile?: () => Promise<string | null>;
+  reaInspectFile?: (filePath: string) => Promise<any>;
+  reaExtractAssets?: (archivePath: string, destinationDir?: string) => Promise<{ extractedPaths: string[]; outputDirectory: string }>;
+  reaRunCli?: (command: string, args: string[]) => Promise<{ exitCode: number }>;
+  onReaCliOutput?: (callback: (chunk: string) => void) => () => void;
 }
 
 declare global {

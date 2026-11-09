@@ -22,7 +22,8 @@ import {
   X,
   CheckSquare,
   Square,
-  Maximize2
+  Maximize2,
+  Cpu
 } from 'lucide-react';
 import type { PhotoItem, GridDensity } from '@gallery/shared';
 import { formatMonthKey, getMonthDisplayName } from '@gallery/shared';
@@ -35,12 +36,13 @@ import { SyncCenter } from './components/SyncCenter';
 import { PeopleView } from './components/PeopleView';
 import { PhotoOfTheMonthCard } from './components/PhotoOfTheMonthCard';
 import { StudioEditorModal } from './components/StudioEditorModal';
+import { ReaInspector } from './components/ReaInspector';
 import type { PersonCluster } from '@gallery/ai-engine';
 
 import './types.d';
 
 export default function App() {
-  const [activeTab, setActiveTab] = useState<'photos' | 'calendar' | 'map' | 'people' | 'vault' | 'sync' | 'exclusions'>('photos');
+  const [activeTab, setActiveTab] = useState<'photos' | 'calendar' | 'map' | 'people' | 'vault' | 'sync' | 'exclusions' | 'inspector'>('photos');
   const [gridDensity, setGridDensity] = useState<GridDensity>(3);
   const [searchQuery, setSearchQuery] = useState('');
   const [isEditorOpen, setIsEditorOpen] = useState(false);
@@ -395,6 +397,21 @@ export default function App() {
               />
             </nav>
           </div>
+
+          <div className="pt-4 border-t border-canvas-subtle">
+            <div className="px-2 mb-2 text-xs font-semibold text-slate-400 uppercase tracking-wider">
+              Engineering & REA
+            </div>
+            <nav className="space-y-1">
+              <NavItem
+                icon={<Cpu className="w-4 h-4 text-cyan-400" />}
+                label="REA Inspector"
+                badge="APK/DB"
+                active={activeTab === 'inspector'}
+                onClick={() => setActiveTab('inspector')}
+              />
+            </nav>
+          </div>
         </div>
 
         <div
@@ -711,6 +728,9 @@ export default function App() {
               photos={photos}
               onImportSyncedPhotos={(newPhotos) => setPhotos((prev) => [...prev, ...newPhotos])}
             />
+          ) : activeTab === 'inspector' ? (
+            /* Reverse Engineer Anything (REA) Inspector View */
+            <ReaInspector />
           ) : activeTab === 'calendar' ? (
             /* Calendar Grouping View */
             <div className="space-y-8">

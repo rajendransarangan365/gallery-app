@@ -14,7 +14,10 @@
     "lint": "turbo run lint",
     "typecheck": "turbo run typecheck",
     "clean": "turbo run clean",
-    "release:notes": "node scripts/generate-release-notes.mjs"
+    "release:notes": "node scripts/generate-release-notes.mjs",
+    "rea": "npx --yes rea-agents",
+    "rea:mcp": "npx --yes rea-agents --mcp",
+    "rea:doctor": "npx --yes rea-agents doctor"
   },
   "devDependencies": {
     "turbo": "^2.4.4",

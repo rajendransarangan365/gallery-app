@@ -10,6 +10,7 @@ import { ExclusionManager } from '@gallery/security';
 import { PhotoIndexer, MtpManager, type MtpPhotoCandidate } from '@gallery/photo-engine';
 import { VaultManager, ExclusionRegistry } from '@gallery/vault-engine';
 import { DesktopSyncServer } from './sync-server.js';
+import { ReaEngine } from './rea-engine.js';
 import type { PhotoItem } from '@gallery/shared';
 
 const __filename = fileURLToPath(import.meta.url);
@@ -149,6 +150,39 @@ app.whenReady().then(async () => {
   ipcMain.handle('sync:registerPhotos', (_event: unknown, photos: PhotoItem[]) => {
     currentPhotos = photos;
     return true;
+  });
+
+  // Reverse Engineer Anything (REA) IPC Handlers
+  ipcMain.handle('rea:openFile', async () => {
+    if (!mainWindow) return null;
+    const result = await dialog.showOpenDialog(mainWindow, {
+      title: 'Select Binary, APK, or SQLite Database to Inspect',
+      filters: [
+        { name: 'All Inspectable Targets', extensions: ['apk', 'sqlite', 'db', 'sqlite3', 'exe', 'dll', 'asar', 'zip'] },
+        { name: 'Android Packages (*.apk)', extensions: ['apk', 'zip'] },
+        { name: 'SQLite Databases (*.db, *.sqlite)', extensions: ['db', 'sqlite', 'sqlite3'] },
+        { name: 'Windows Binaries (*.exe, *.dll)', extensions: ['exe', 'dll'] },
+        { name: 'All Files', extensions: ['*'] }
+      ],
+      properties: ['openFile']
+    });
+    return result.canceled ? null : result.filePaths[0];
+  });
+
+  ipcMain.handle('rea:inspectFile', async (_event: unknown, targetPath: string) => {
+    return ReaEngine.inspectFile(targetPath);
+  });
+
+  ipcMain.handle('rea:extractAssets', async (_event: unknown, archivePath: string, destinationDir?: string) => {
+    const outDir = destinationDir || path.join(app.getPath('pictures'), 'PhotoGallery_Extracted_Assets');
+    const extracted = await ReaEngine.extractAllAssets(archivePath, outDir);
+    return { extractedPaths: extracted, outputDirectory: outDir };
+  });
+
+  ipcMain.handle('rea:runCli', async (_event: unknown, command: string, args: string[]) => {
+    return ReaEngine.runReaCli(command, args, (chunk) => {
+      mainWindow?.webContents.send('rea:cliOutput', chunk);
+    });
   });
 
   app.on('activate', () => {
