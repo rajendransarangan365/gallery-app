@@ -2,6 +2,7 @@
   "name": "@gallery/windows",
   "version": "0.1.0-alpha",
   "private": true,
+  "packageManager": "pnpm@9.15.4",
   "type": "module",
   "description": "Privacy-First AI Photo Gallery Windows Desktop Application",
   "author": "rajendransarangan365",

@@ -4,6 +4,7 @@ node_modules/
 
 # Build Outputs
 dist/
+dist-installer/
 build/
 out/
 dist-release/
