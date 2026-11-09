@@ -585,3 +585,47 @@ Build production release binaries for both Windows Desktop (`.exe` NSIS Installe
 
 ### 4. Next Immediate Task
 - Provide direct, one-click download URLs and installation instructions for both Windows Desktop and Android Mobile to the user.
+
+---
+
+## [TASK-018] — REA (Reverse Engineer Anything) Full Stack & Agent Skill Integration
+- **Timestamp:** 2026-11-09T12:48:00+05:30
+- **Author:** Lead AI Software Architect & Senior Systems Engineer
+- **Status:** COMPLETED
+
+### 1. Scope & Objective
+Incorporate `morluto/rea` (Reverse Engineer Anything) capabilities into the application ecosystem, providing both a native OriginOS "Media & APK Inspector" in the Windows desktop app and an agent-compatible reverse-engineering skill (`reverse-engineer-anything`).
+
+### 2. Actions Performed
+1. **Built Native `ReaEngine` (`apps/windows/src/main/rea-engine.ts`)**:
+   - Zero-dependency streaming APK/ZIP central directory parser with raw deflate decompression for thumbnail extraction.
+   - AndroidManifest binary string and permission extractor.
+   - SQLite page/schema inspector with media table and column heuristics.
+   - Windows PE binary parser (.exe / .dll) extracting machine architecture, timestamps, section headers, and embedded resource flags.
+   - One-click batch media asset exporter (`extractAllAssets`).
+   - Spawned process runner for `rea` CLI commands (`runReaCli`).
+2. **Context Bridge Integration**:
+   - Registered IPC handlers in `apps/windows/src/main/index.ts` (`rea:openFile`, `rea:inspectFile`, `rea:extractAssets`, `rea:runCli`).
+   - Exposed secure preload methods in `apps/windows/src/preload/index.ts`.
+   - Updated TypeScript context declarations in `apps/windows/src/renderer/types.d.ts`.
+3. **OriginOS Desktop UI Component (`apps/windows/src/renderer/components/ReaInspector.tsx`)**:
+   - Built a dynamic OriginOS glassmorphic panel with drag & drop support for `.apk`, `.db`, `.sqlite`, `.exe`, `.dll`, `.asar`.
+   - Multi-tab view: Architecture & Identity, Embedded Media Assets Gallery (with instant preview modal and batch import to gallery), Manifest/Permissions/Schema explorer, and live REA Agent Terminal console.
+   - Integrated `Cpu` icon NavItem in `apps/windows/src/renderer/App.tsx`.
+4. **Repository Agent Skill & Tooling**:
+   - Created `.agents/skills/reverse-engineer-anything/SKILL.md` directly imported from `morluto/rea`.
+   - Added `rea`, `rea:mcp`, and `rea:doctor` helper scripts in root `package.json`.
+5. **Quality Verification**:
+   - Built and typechecked `@gallery/windows` with 0 errors.
+   - Monorepo gate `pnpm turbo run build typecheck test lint`: **36/36 passed**.
+   - Built local NSIS Installer (`PhotoGallery Setup 0.1.0-alpha.exe`, 90.80 MB).
+   - Tagged and pushed `v1.0.15` to trigger automated dual-repo release build.
+
+### 3. Verification & Evidence
+- Monorepo tasks: **36/36 successful**.
+- Windows NSIS Installer built locally: `apps/windows/dist-installer/PhotoGallery Setup 0.1.0-alpha.exe` (90,806,655 bytes).
+- Skill registered: `.agents/skills/reverse-engineer-anything/SKILL.md`.
+- Git commit pushed: `57066e1` on `master` and tag `v1.0.15`.
+
+### 4. Next Immediate Task
+- Coordinate with user regarding the Claude Artifact content to incorporate any custom UI/logic requested.
