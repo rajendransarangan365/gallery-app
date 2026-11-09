@@ -26,6 +26,26 @@ import {
   ScrollView,
   Animated,
 } from 'react-native';
+import {
+  Image as ImageIcon,
+  Folder as FolderIcon,
+  Sparkles as SparklesIcon,
+  RefreshCw as RefreshCwIcon,
+  Lock as LockIcon,
+  Camera as CameraIcon,
+  Play as PlayIcon,
+  Heart as HeartIcon,
+  Film as FilmIcon,
+  Award as AwardIcon,
+  Smartphone as SmartphoneIcon,
+  Check as CheckIcon,
+  X as XIcon,
+  Info as InfoIcon,
+  Share2 as ShareIcon,
+  UploadCloud as UploadCloudIcon,
+  ChevronLeft as ChevronLeftIcon,
+  ChevronRight as ChevronRightIcon,
+} from 'lucide-react-native';
 import { colors } from '@gallery/ui-tokens';
 import type { PhotoItem, GridDensity } from '@gallery/shared';
 
@@ -183,13 +203,13 @@ export default function AndroidApp() {
           const pairData = await pairRes.json();
           if (pairData.success) {
             setIsSyncConnected(true);
-            setSyncLog((prev) => [`✓ Paired with ${data.deviceName}`, ...prev]);
+            setSyncLog((prev) => [`[PAIRED] ${data.deviceName}`, ...prev]);
             return;
           }
         }
 
         setIsSyncConnected(true);
-        setSyncLog((prev) => [`✓ Connected to ${data.deviceName} (${data.ip})`, ...prev]);
+        setSyncLog((prev) => [`[CONNECTED] ${data.deviceName} (${data.ip})`, ...prev]);
       } else {
         alert('Could not connect to desktop. Please check IP address and ensure PC app is open.');
       }
@@ -256,7 +276,7 @@ export default function AndroidApp() {
     setIsSyncing(false);
     setSyncProgress(null);
     setSyncLog((prev) => [
-      `✓ Transferred ${successCount}/${total} files to desktop at ${new Date().toLocaleTimeString()}`,
+      `[TRANSFERRED] ${successCount}/${total} files to desktop at ${new Date().toLocaleTimeString()}`,
       ...prev,
     ]);
   };
@@ -340,7 +360,7 @@ export default function AndroidApp() {
             {isScanning ? (
               <ActivityIndicator size="small" color="#3B82F6" />
             ) : (
-              <Text style={styles.refreshText}>↻</Text>
+              <RefreshCwIcon size={16} color="#94A3B8" />
             )}
           </TouchableOpacity>
         </View>
@@ -353,7 +373,8 @@ export default function AndroidApp() {
             style={styles.breadcrumbButton}
             onPress={() => setSelectedAlbum(null)}
           >
-            <Text style={styles.breadcrumbText}>← All Photos</Text>
+            <ChevronLeftIcon size={15} color="#60A5FA" style={{ marginRight: 4 }} />
+            <Text style={styles.breadcrumbText}>All Photos</Text>
           </TouchableOpacity>
           <Text style={styles.breadcrumbCount}>{displayedPhotos.length} items</Text>
         </View>
@@ -366,7 +387,9 @@ export default function AndroidApp() {
           <>
             {hasPermission === false ? (
               <View style={styles.permissionCard}>
-                <Text style={styles.permissionIcon}>🔒</Text>
+                <View style={styles.iconCircle}>
+                  <LockIcon size={32} color="#60A5FA" />
+                </View>
                 <Text style={styles.cardTitle}>Media Permission Required</Text>
                 <Text style={styles.cardSubtitle}>
                   In compliance with the Zero Mock Data policy, grant storage & media
@@ -381,7 +404,9 @@ export default function AndroidApp() {
               </View>
             ) : photos.length === 0 && !isScanning ? (
               <View style={styles.permissionCard}>
-                <Text style={styles.permissionIcon}>📷</Text>
+                <View style={styles.iconCircle}>
+                  <CameraIcon size={32} color="#60A5FA" />
+                </View>
                 <Text style={styles.cardTitle}>No Photos or Videos Found</Text>
                 <Text style={styles.cardSubtitle}>
                   Take photographs with your device camera or tap Scan to refresh your library.
@@ -420,7 +445,7 @@ export default function AndroidApp() {
                       {/* OriginOS Video Badge */}
                       {isVideo && (
                         <View style={styles.videoBadge}>
-                          <Text style={styles.videoIcon}>▶</Text>
+                          <PlayIcon size={9} color="#FFFFFF" fill="#FFFFFF" style={{ marginRight: 3 }} />
                           <Text style={styles.videoDurationText}>
                             {formatDuration((item as any).duration || 0)}
                           </Text>
@@ -430,7 +455,7 @@ export default function AndroidApp() {
                       {/* Favorite Heart Badge */}
                       {item.isFavorite && (
                         <View style={styles.favBadge}>
-                          <Text style={styles.favText}>♥</Text>
+                          <HeartIcon size={11} color="#EF4444" fill="#EF4444" />
                         </View>
                       )}
                     </TouchableOpacity>
@@ -453,7 +478,9 @@ export default function AndroidApp() {
                   setActiveTab('photos');
                 }}
               >
-                <Text style={styles.smartAlbumIcon}>🎬</Text>
+                <View style={styles.smartAlbumIconWrapper}>
+                  <FilmIcon size={24} color="#60A5FA" />
+                </View>
                 <Text style={styles.smartAlbumTitle}>Videos</Text>
                 <Text style={styles.smartAlbumCount}>
                   {photos.filter((p: any) => p.isVideo).length} clips
@@ -467,7 +494,9 @@ export default function AndroidApp() {
                   setActiveTab('photos');
                 }}
               >
-                <Text style={styles.smartAlbumIcon}>❤️</Text>
+                <View style={styles.smartAlbumIconWrapper}>
+                  <HeartIcon size={24} color="#F43F5E" fill="#F43F5E" />
+                </View>
                 <Text style={styles.smartAlbumTitle}>Favorites</Text>
                 <Text style={styles.smartAlbumCount}>
                   {photos.filter((p) => p.isFavorite).length} items
@@ -491,7 +520,7 @@ export default function AndroidApp() {
                   <Text style={styles.albumRowTitle}>{album.name}</Text>
                   <Text style={styles.albumRowCount}>{album.count} items</Text>
                 </View>
-                <Text style={styles.albumRowChevron}>›</Text>
+                <ChevronRightIcon size={18} color="#64748B" style={{ marginRight: 6 }} />
               </TouchableOpacity>
             ))}
           </ScrollView>
@@ -503,7 +532,10 @@ export default function AndroidApp() {
             {/* OriginOS Atomic Memory Hero Card */}
             <View style={styles.memoryHeroCard}>
               <View style={styles.memoryOverlay}>
-                <Text style={styles.memoryTag}>✨ ORIGIN MEMORY</Text>
+                <View style={styles.memoryTagBadge}>
+                  <SparklesIcon size={12} color="#818CF8" />
+                  <Text style={styles.memoryTag}>ORIGIN MEMORY</Text>
+                </View>
                 <Text style={styles.memoryTitle}>Memories of November</Text>
                 <Text style={styles.memorySubtitle}>
                   {photos.length} captured moments preserved on device
@@ -521,7 +553,9 @@ export default function AndroidApp() {
             {photos.length > 0 && (
               <View style={styles.showcaseCard}>
                 <View style={styles.showcaseHeader}>
-                  <Text style={styles.showcaseTrophy}>🏆</Text>
+                  <View style={styles.trophyWrapper}>
+                    <AwardIcon size={22} color="#FBBF24" />
+                  </View>
                   <View>
                     <Text style={styles.showcaseTitle}>Best Photo of the Month</Text>
                     <Text style={styles.showcaseSub}>Aesthetic AI Quality: 96.4%</Text>
@@ -577,7 +611,7 @@ export default function AndroidApp() {
                   ]}
                 />
                 <View style={styles.radarCenterNode}>
-                  <Text style={styles.radarNodeIcon}>📱</Text>
+                  <SmartphoneIcon size={22} color="#FFFFFF" />
                 </View>
               </View>
 
@@ -640,9 +674,14 @@ export default function AndroidApp() {
                 ]}
                 onPress={handleConnectDesktop}
               >
-                <Text style={styles.actionButtonText}>
-                  {isSyncConnected ? '✓ Connected to Windows' : 'Connect & Pair'}
-                </Text>
+                <View style={styles.buttonContentRow}>
+                  {isSyncConnected && (
+                    <CheckIcon size={16} color="#FFFFFF" style={{ marginRight: 6 }} />
+                  )}
+                  <Text style={styles.actionButtonText}>
+                    {isSyncConnected ? 'Connected to Windows' : 'Connect & Pair'}
+                  </Text>
+                </View>
               </TouchableOpacity>
             </View>
 
@@ -656,7 +695,9 @@ export default function AndroidApp() {
                   onPress={() => handleUploadToDesktop(photos)}
                   disabled={isSyncing}
                 >
-                  <Text style={styles.transferIcon}>⬆</Text>
+                  <View style={styles.transferIconWrapper}>
+                    <UploadCloudIcon size={20} color="#3B82F6" />
+                  </View>
                   <View style={styles.transferMeta}>
                     <Text style={styles.transferTitle}>Backup All Media to PC</Text>
                     <Text style={styles.transferSub}>
@@ -721,7 +762,10 @@ export default function AndroidApp() {
               setSelectedAlbum(null);
             }}
           >
-            <Text style={styles.dockIcon}>📸</Text>
+            <ImageIcon
+              size={18}
+              color={activeTab === 'photos' ? '#3B82F6' : '#94A3B8'}
+            />
             <Text
               style={[
                 styles.dockLabel,
@@ -736,7 +780,10 @@ export default function AndroidApp() {
             style={[styles.dockItem, activeTab === 'albums' && styles.dockItemActive]}
             onPress={() => setActiveTab('albums')}
           >
-            <Text style={styles.dockIcon}>📁</Text>
+            <FolderIcon
+              size={18}
+              color={activeTab === 'albums' ? '#3B82F6' : '#94A3B8'}
+            />
             <Text
               style={[
                 styles.dockLabel,
@@ -751,7 +798,10 @@ export default function AndroidApp() {
             style={[styles.dockItem, activeTab === 'explore' && styles.dockItemActive]}
             onPress={() => setActiveTab('explore')}
           >
-            <Text style={styles.dockIcon}>✨</Text>
+            <SparklesIcon
+              size={18}
+              color={activeTab === 'explore' ? '#3B82F6' : '#94A3B8'}
+            />
             <Text
               style={[
                 styles.dockLabel,
@@ -766,7 +816,10 @@ export default function AndroidApp() {
             style={[styles.dockItem, activeTab === 'sync' && styles.dockItemActive]}
             onPress={() => setActiveTab('sync')}
           >
-            <Text style={styles.dockIcon}>🔄</Text>
+            <RefreshCwIcon
+              size={18}
+              color={activeTab === 'sync' ? '#3B82F6' : '#94A3B8'}
+            />
             <Text
               style={[
                 styles.dockLabel,
@@ -791,7 +844,7 @@ export default function AndroidApp() {
                 style={styles.fsIconButton}
                 onPress={() => setFullscreenPhoto(null)}
               >
-                <Text style={styles.fsIconText}>✕</Text>
+                <XIcon size={18} color="#FFFFFF" />
               </TouchableOpacity>
               <View style={styles.fsMetaPill}>
                 <Text style={styles.fsMetaTitle} numberOfLines={1}>
@@ -805,7 +858,7 @@ export default function AndroidApp() {
                 style={styles.fsIconButton}
                 onPress={() => setShowInfoDrawer(!showInfoDrawer)}
               >
-                <Text style={styles.fsIconText}>ℹ</Text>
+                <InfoIcon size={18} color="#FFFFFF" />
               </TouchableOpacity>
             </View>
 
@@ -853,7 +906,7 @@ export default function AndroidApp() {
                 style={styles.fsActionBtn}
                 onPress={() => handleSharePhoto(fullscreenPhoto)}
               >
-                <Text style={styles.fsActionIcon}>↗</Text>
+                <ShareIcon size={18} color="#FFFFFF" />
                 <Text style={styles.fsActionLabel}>Share</Text>
               </TouchableOpacity>
 
@@ -873,14 +926,11 @@ export default function AndroidApp() {
                   });
                 }}
               >
-                <Text
-                  style={[
-                    styles.fsActionIcon,
-                    fullscreenPhoto.isFavorite && { color: '#EF4444' },
-                  ]}
-                >
-                  {fullscreenPhoto.isFavorite ? '♥' : '♡'}
-                </Text>
+                <HeartIcon
+                  size={18}
+                  color={fullscreenPhoto.isFavorite ? '#EF4444' : '#FFFFFF'}
+                  fill={fullscreenPhoto.isFavorite ? '#EF4444' : 'transparent'}
+                />
                 <Text style={styles.fsActionLabel}>Favorite</Text>
               </TouchableOpacity>
 
@@ -889,7 +939,7 @@ export default function AndroidApp() {
                   style={styles.fsActionBtn}
                   onPress={() => handleUploadToDesktop([fullscreenPhoto])}
                 >
-                  <Text style={styles.fsActionIcon}>⬆</Text>
+                  <UploadCloudIcon size={18} color="#FFFFFF" />
                   <Text style={styles.fsActionLabel}>Sync to PC</Text>
                 </TouchableOpacity>
               )}
@@ -1061,8 +1111,15 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginTop: 60,
   },
-  permissionIcon: {
-    fontSize: 44,
+  iconCircle: {
+    width: 68,
+    height: 68,
+    borderRadius: 34,
+    backgroundColor: 'rgba(59, 130, 246, 0.12)',
+    borderWidth: 1,
+    borderColor: 'rgba(59, 130, 246, 0.25)',
+    justifyContent: 'center',
+    alignItems: 'center',
     marginBottom: 16,
   },
   cardTitle: {
@@ -1112,9 +1169,14 @@ const styles = StyleSheet.create({
     borderRadius: 20,
     padding: 16,
   },
-  smartAlbumIcon: {
-    fontSize: 26,
-    marginBottom: 8,
+  smartAlbumIconWrapper: {
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    backgroundColor: 'rgba(255, 255, 255, 0.05)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: 10,
   },
   smartAlbumTitle: {
     fontSize: 15,
@@ -1164,11 +1226,6 @@ const styles = StyleSheet.create({
     color: '#94A3B8',
     marginTop: 2,
   },
-  albumRowChevron: {
-    fontSize: 20,
-    color: '#64748B',
-    marginRight: 6,
-  },
   exploreContainer: {
     padding: 18,
     paddingBottom: 110,
@@ -1185,12 +1242,17 @@ const styles = StyleSheet.create({
     padding: 20,
     backgroundColor: 'rgba(15, 23, 42, 0.85)',
   },
+  memoryTagBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    marginBottom: 6,
+  },
   memoryTag: {
     fontSize: 11,
     fontWeight: '800',
     color: '#818CF8',
     letterSpacing: 1,
-    marginBottom: 4,
   },
   memoryTitle: {
     fontSize: 20,
@@ -1228,8 +1290,15 @@ const styles = StyleSheet.create({
     gap: 12,
     marginBottom: 14,
   },
-  showcaseTrophy: {
-    fontSize: 28,
+  trophyWrapper: {
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    backgroundColor: 'rgba(251, 191, 36, 0.12)',
+    borderWidth: 1,
+    borderColor: 'rgba(251, 191, 36, 0.25)',
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   showcaseTitle: {
     fontSize: 15,
@@ -1369,6 +1438,11 @@ const styles = StyleSheet.create({
     padding: 18,
     marginBottom: 16,
   },
+  buttonContentRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
   transferButton: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -1378,9 +1452,13 @@ const styles = StyleSheet.create({
     borderRadius: 18,
     padding: 14,
   },
-  transferIcon: {
-    fontSize: 22,
-    color: '#60A5FA',
+  transferIconWrapper: {
+    width: 38,
+    height: 38,
+    borderRadius: 19,
+    backgroundColor: 'rgba(59, 130, 246, 0.15)',
+    justifyContent: 'center',
+    alignItems: 'center',
     marginRight: 12,
   },
   transferMeta: {

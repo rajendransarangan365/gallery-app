@@ -516,8 +516,9 @@ export default function App() {
                 <Smartphone className="w-5 h-5" />
               </div>
               <div>
-                <p className="text-sm font-medium text-slate-100">
-                  📱 {activeMtpDevice.name} Connected:{' '}
+                <p className="text-sm font-medium text-slate-100 flex items-center gap-2">
+                  <Smartphone className="w-4 h-4 text-blue-400 inline" />
+                  <span>{activeMtpDevice.name} Connected:</span>{' '}
                   <span className="text-blue-400 font-semibold">
                     {detectedPhotoCount > 0 ? `${detectedPhotoCount} new photographs` : 'Media storage'}
                   </span>{' '}
@@ -648,7 +649,9 @@ export default function App() {
               {purgeNotice && (
                 <div className="p-3 bg-emerald-950/70 border border-emerald-500/40 rounded-xl text-xs text-emerald-300 flex items-center justify-between animate-fade-in">
                   <span>{purgeNotice}</span>
-                  <button onClick={() => setPurgeNotice(null)} className="text-emerald-400 hover:text-white">✕</button>
+                  <button onClick={() => setPurgeNotice(null)} className="p-1 rounded text-emerald-400 hover:text-white hover:bg-emerald-900/50 transition-colors" aria-label="Close notification">
+                    <X className="w-3.5 h-3.5" />
+                  </button>
                 </div>
               )}
 

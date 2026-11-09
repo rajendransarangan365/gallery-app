@@ -19,7 +19,8 @@ import {
   ExternalLink,
   Search,
   Copy,
-  Sparkles
+  Sparkles,
+  Zap
 } from 'lucide-react';
 
 interface ExtractedMediaItem {
@@ -248,14 +249,17 @@ export function ReaInspector() {
               <code className="text-cyan-400">.exe, .dll</code>), and Electron ASAR bundles.
             </p>
             <div className="flex items-center justify-center gap-3 mt-6">
-              <span className="px-3 py-1 bg-white/5 border border-white/10 rounded-lg text-xs text-slate-300">
-                📦 APK Metadata & Assets
+              <span className="flex items-center gap-1.5 px-3 py-1 bg-white/5 border border-white/10 rounded-lg text-xs text-slate-300">
+                <Box className="w-3.5 h-3.5 text-cyan-400" />
+                <span>APK Metadata & Assets</span>
               </span>
-              <span className="px-3 py-1 bg-white/5 border border-white/10 rounded-lg text-xs text-slate-300">
-                🗄️ SQLite Schema & Media
+              <span className="flex items-center gap-1.5 px-3 py-1 bg-white/5 border border-white/10 rounded-lg text-xs text-slate-300">
+                <Database className="w-3.5 h-3.5 text-indigo-400" />
+                <span>SQLite Schema & Media</span>
               </span>
-              <span className="px-3 py-1 bg-white/5 border border-white/10 rounded-lg text-xs text-slate-300">
-                ⚡ PE Headers & Sections
+              <span className="flex items-center gap-1.5 px-3 py-1 bg-white/5 border border-white/10 rounded-lg text-xs text-slate-300">
+                <Zap className="w-3.5 h-3.5 text-amber-400" />
+                <span>PE Headers & Sections</span>
               </span>
             </div>
           </div>

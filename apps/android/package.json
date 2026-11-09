@@ -13,17 +13,19 @@
     "ios": "expo run:ios"
   },
   "dependencies": {
-    "@gallery/shared": "workspace:*",
-    "@gallery/ui-tokens": "workspace:*",
+    "@babel/runtime": "^7.26.0",
     "@gallery/database": "workspace:*",
     "@gallery/security": "workspace:*",
-    "react": "18.3.1",
-    "react-native": "0.76.7",
+    "@gallery/shared": "workspace:*",
+    "@gallery/ui-tokens": "workspace:*",
     "expo": "^52.0.0",
-    "expo-modules-core": "~2.0.0",
     "expo-asset": "^11.0.0",
     "expo-constants": "^17.0.0",
-    "@babel/runtime": "^7.26.0"
+    "expo-modules-core": "~2.0.0",
+    "lucide-react-native": "^1.70.0",
+    "react": "18.3.1",
+    "react-native": "0.76.7",
+    "react-native-svg": "^15.16.1"
   },
   "devDependencies": {
     "@types/react": "^18.3.18",

@@ -62,9 +62,12 @@ export function PhotoOfTheMonthCard({
 
             <h3 className="text-base font-bold text-slate-100">{photo.fileName}</h3>
 
-            <p className="text-xs text-slate-300 leading-relaxed max-w-2xl bg-canvas-base/50 p-2.5 rounded-xl border border-canvas-subtle/60">
-              💡 <span className="font-semibold text-amber-300">AI Aesthetic Analysis:</span>{' '}
-              {winner.aiReasoning}
+            <p className="text-xs text-slate-300 leading-relaxed max-w-2xl bg-canvas-base/50 p-2.5 rounded-xl border border-canvas-subtle/60 flex items-start gap-2">
+              <Sparkles className="w-4 h-4 text-amber-300 shrink-0 mt-0.5" />
+              <span>
+                <span className="font-semibold text-amber-300">AI Aesthetic Analysis:</span>{' '}
+                {winner.aiReasoning}
+              </span>
             </p>
 
             {/* Score Breakdown Pills */}
