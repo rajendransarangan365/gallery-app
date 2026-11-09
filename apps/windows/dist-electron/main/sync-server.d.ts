@@ -24,12 +24,24 @@ export declare class DesktopSyncServer {
     private thumbnailCache;
     constructor(config: SyncServerConfig, getMainWindow: () => BrowserWindow | null, getLibraryPhotos: () => PhotoItem[]);
     regeneratePin(): string;
+    getAllIPs(): Array<{
+        name: string;
+        address: string;
+        isWifi: boolean;
+        isRecommended: boolean;
+    }>;
     getLocalIP(): string;
     getStatus(): {
         status: string;
         deviceName: string;
         platform: string;
         ip: string;
+        availableIps: {
+            name: string;
+            address: string;
+            isWifi: boolean;
+            isRecommended: boolean;
+        }[];
         port: number;
         pin: string;
         syncDirectory: string;

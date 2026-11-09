@@ -699,3 +699,47 @@ Eliminate all unicode text emojis across both Android mobile and Windows desktop
 
 ### 4. Next Immediate Task
 - Await user's Claude Artifact code snippet to integrate any requested design or UI enhancements.
+
+
+---
+
+## [TASK-021] — Dual-Platform Mobile Connection Engine Hardening (Wi-Fi LAN SyncFlow & USB / MTP File Transfer)
+- **Timestamp:** 2026-11-09T20:10:00+05:30
+- **Author:** Lead AI Software Architect & Senior Systems Engineer
+- **Status:** COMPLETED
+
+### 1. Scope & Objective
+Resolve the mobile phone connection failures preventing Android devices from interconnecting with the Windows Desktop application both wirelessly over local Wi-Fi and via USB cable file transfer (MTP).
+
+### 2. Actions Performed
+1. **Android 9+ Cleartext HTTP Policy & Network Security**:
+   - Diagnosed root cause of wireless connection failure: Android OS blocks unencrypted HTTP requests (`http://192.168.x.x:41236`) by default with `CLEARTEXT communication not permitted`.
+   - Added `android:usesCleartextTraffic="true"` and `android:networkSecurityConfig="@xml/network_security_config"` to `apps/android/android/app/src/main/AndroidManifest.xml`.
+   - Created `apps/android/android/app/src/main/res/xml/network_security_config.xml` explicitly authorizing cleartext HTTP on local subnets (`192.168.0.0/16`, `10.0.0.0/8`, `172.16.0.0/12`, `localhost`).
+   - Added `<uses-permission android:name="android.permission.ACCESS_NETWORK_STATE"/>`, `<uses-permission android:name="android.permission.ACCESS_WIFI_STATE"/>`, and `<uses-permission android:name="android.permission.CHANGE_WIFI_MULTICAST_STATE"/>`.
+2. **Desktop Sync Server Physical IP Discovery & Multi-Adapter Support**:
+   - Diagnosed that `os.networkInterfaces()` previously returned the first virtual adapter (`vgate0` / WSL / Hyper-V `172.30.211.173` or VirtualBox `192.168.56.1`), rendering the server endpoint unreachable by external mobile phones.
+   - Implemented `getAllIPs()` in `apps/windows/src/main/sync-server.ts` to filter out virtual adapters (`vgate`, `vEthernet`, `WSL`, `VirtualBox`, `VMware`, `Hyper-V`, `Loopback`, `docker`, `teredo`, `tailscale`) and prioritize the real physical Wi-Fi adapter (`192.168.31.22`).
+   - Added `/api/ping` probe endpoint for instant reachability and latency checks.
+   - Updated discovery beacon payload to include explicit `ip` and `pin`.
+3. **Native UDP Auto-Discovery & Subnet Auto-Alignment**:
+   - Implemented `getLocalDeviceIp` in `MediaStoreModule.kt` to resolve the phone's active Wi-Fi IP and automatically align the subnet prefix on mobile.
+   - Implemented `discoverDesktopBeacons` in `MediaStoreModule.kt` using Android `WifiManager.MulticastLock` and UDP broadcast probe on port 41235.
+   - Updated `apps/android/src/App.tsx` with "Auto-Discover Windows Desktop" button, real-time latency ping test, and connection troubleshooting checklist.
+4. **Windows MTP / USB Device Detection & Traversal Architecture**:
+   - Diagnosed PowerShell parser error in `MtpManager.detectConnectedDevices()` caused by broken quote escaping in `exec()`.
+   - Migrated PowerShell scripts to base64 `-EncodedCommand`, eliminating all escaping issues.
+   - Enhanced detection across `Win32_PnPEntity`, `Shell.Application` (Namespace 17), and removable drives.
+   - Enabled WPD / Shell namespace file traversal and copy using Windows Shell `CopyHere`.
+   - Added "Import Phone USB" button to Windows top toolbar, "Browse Folder on Phone" in `MtpImportModal.tsx`, and clear USB mode checklist.
+5. **Zero Emojis Verification**:
+   - Automated scan confirmed 0 emojis in modified code (`Total emojis found in changed files: 0`), strictly using Lucide vector icons (`RadioIcon`, `WifiIcon`, `CableIcon`, `HelpCircleIcon`).
+
+### 3. Verification & Evidence
+- Monorepo Quality Gate: `pnpm turbo run build typecheck test lint` -> **36/36 passed, 0 errors**.
+- `@gallery/photo-engine` tests: **4 passed, 0 failures**.
+- `@gallery/sync-engine` tests: **4 passed, 0 failures**.
+- Packaged Local Windows NSIS Installer: `apps/windows/dist-installer/PhotoGallery Setup 0.1.0-alpha.exe` (90,806,720 bytes).
+
+### 4. Next Immediate Task
+- Release dual-platform binaries (v1.0.21) via GitHub Releases pipeline and push code to remote origin.

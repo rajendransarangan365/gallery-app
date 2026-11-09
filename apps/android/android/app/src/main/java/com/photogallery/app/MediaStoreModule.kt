@@ -1,7 +1,9 @@
 package com.photogallery.app
 
 import android.content.ContentUris
+import android.content.Context
 import android.net.Uri
+import android.net.wifi.WifiManager
 import android.os.Build
 import android.provider.MediaStore
 import com.facebook.react.bridge.*
@@ -11,10 +13,15 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.io.InputStream
 import java.io.OutputStream
+import java.net.DatagramPacket
+import java.net.DatagramSocket
 import java.net.HttpURLConnection
+import java.net.InetAddress
+import java.net.NetworkInterface
 import java.net.URL
 import java.text.SimpleDateFormat
 import java.util.*
+import org.json.JSONObject
 
 class MediaStoreModule(private val reactContext: ReactApplicationContext) :
     ReactContextBaseJavaModule(reactContext) {
@@ -365,6 +372,136 @@ class MediaStoreModule(private val reactContext: ReactApplicationContext) :
                 try { inputStream?.close() } catch (_: Exception) {}
                 try { outputStream?.close() } catch (_: Exception) {}
                 try { connection?.disconnect() } catch (_: Exception) {}
+            }
+        }
+    }
+
+    /**
+     * Resolves local device Wi-Fi IPv4 address.
+     */
+    @ReactMethod
+    fun getLocalDeviceIp(promise: Promise) {
+        CoroutineScope(Dispatchers.IO).launch {
+            try {
+                var foundIp: String? = null
+                val interfaces = NetworkInterface.getNetworkInterfaces()
+                while (interfaces.hasMoreElements()) {
+                    val iface = interfaces.nextElement()
+                    if (iface.isLoopback || !iface.isUp) continue
+                    val addresses = iface.inetAddresses
+                    while (addresses.hasMoreElements()) {
+                        val addr = addresses.nextElement()
+                        if (!addr.isLoopbackAddress && addr is java.net.Inet4Address) {
+                            val host = addr.hostAddress
+                            if (host != null && (host.startsWith("192.168.") || host.startsWith("10.") || host.startsWith("172."))) {
+                                foundIp = host
+                                break
+                            }
+                        }
+                    }
+                    if (foundIp != null) break
+                }
+
+                withContext(Dispatchers.Main) {
+                    val map = Arguments.createMap().apply {
+                        putString("ip", foundIp ?: "127.0.0.1")
+                    }
+                    promise.resolve(map)
+                }
+            } catch (e: Exception) {
+                withContext(Dispatchers.Main) {
+                    promise.resolve(Arguments.createMap().apply { putString("ip", "127.0.0.1") })
+                }
+            }
+        }
+    }
+
+    /**
+     * Native UDP Broadcast & Discovery Listener for Desktop Sync Server.
+     * Listens on UDP port 41235 and broadcasts a probe packet on 255.255.255.255.
+     */
+    @ReactMethod
+    fun discoverDesktopBeacons(timeoutMs: Double, promise: Promise) {
+        CoroutineScope(Dispatchers.IO).launch {
+            var socket: DatagramSocket? = null
+            var multicastLock: WifiManager.MulticastLock? = null
+
+            try {
+                val wifiManager = reactContext.applicationContext.getSystemService(Context.WIFI_SERVICE) as? WifiManager
+                multicastLock = wifiManager?.createMulticastLock("gallery_udp_probe")?.apply {
+                    setReferenceCounted(true)
+                    acquire()
+                }
+
+                socket = DatagramSocket(null).apply {
+                    reuseAddress = true
+                    broadcast = true
+                    soTimeout = timeoutMs.toInt().coerceIn(1000, 10000)
+                    bind(java.net.InetSocketAddress(41235))
+                }
+
+                // Broadcast probe request
+                val probePayload = "GALLERY_P2P_PROBE_V1".toByteArray(Charsets.UTF_8)
+                val broadcastAddr = InetAddress.getByName("255.255.255.255")
+                val probePacket = DatagramPacket(probePayload, probePayload.size, broadcastAddr, 41235)
+                try {
+                    socket.send(probePacket)
+                } catch (_: Exception) {}
+
+                // Wait for desktop beacon or response
+                val buffer = ByteArray(2048)
+                val responsePacket = DatagramPacket(buffer, buffer.size)
+                socket.receive(responsePacket)
+
+                val responseStr = String(responsePacket.data, 0, responsePacket.length, Charsets.UTF_8)
+                val senderIp = responsePacket.address.hostAddress
+
+                var desktopIp = senderIp
+                var port = 41236
+                var deviceName = "Windows Desktop"
+                var pin: String? = null
+
+                try {
+                    val json = JSONObject(responseStr)
+                    if (json.has("ip") && json.getString("ip").isNotEmpty()) {
+                        desktopIp = json.getString("ip")
+                    }
+                    if (json.has("port")) {
+                        port = json.getInt("port")
+                    }
+                    if (json.has("name")) {
+                        deviceName = json.getString("name")
+                    }
+                    if (json.has("pin")) {
+                        pin = json.getString("pin")
+                    }
+                } catch (_: Exception) {}
+
+                withContext(Dispatchers.Main) {
+                    val result = Arguments.createMap().apply {
+                        putBoolean("success", true)
+                        putString("ip", desktopIp)
+                        putInt("port", port)
+                        putString("deviceName", deviceName)
+                        if (pin != null) putString("pin", pin)
+                    }
+                    promise.resolve(result)
+                }
+            } catch (e: Exception) {
+                withContext(Dispatchers.Main) {
+                    val result = Arguments.createMap().apply {
+                        putBoolean("success", false)
+                        putString("error", e.message ?: "Discovery timed out")
+                    }
+                    promise.resolve(result)
+                }
+            } finally {
+                try { socket?.close() } catch (_: Exception) {}
+                try {
+                    if (multicastLock?.isHeld == true) {
+                        multicastLock.release()
+                    }
+                } catch (_: Exception) {}
             }
         }
     }

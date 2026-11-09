@@ -474,6 +474,28 @@ export default function App() {
               )}
             </button>
 
+            <button
+              onClick={() => {
+                if (activeMtpDevice) {
+                  setIsMtpModalOpen(true);
+                } else {
+                  checkMtpDevices();
+                  setActiveMtpDevice({
+                    id: 'manual-phone',
+                    name: 'Phone / USB Storage',
+                    path: '',
+                    isStorageAccessible: true,
+                  });
+                  setIsMtpModalOpen(true);
+                }
+              }}
+              className="flex items-center gap-1.5 px-3 py-2 bg-indigo-600/20 hover:bg-indigo-600/30 border border-indigo-500/30 text-indigo-300 rounded-xl text-sm font-medium transition-colors"
+              title="Import from Phone via USB (MTP) or SD Card"
+            >
+              <Smartphone className="w-4 h-4 text-indigo-400" />
+              <span>Import Phone USB</span>
+            </button>
+
             <div className="flex items-center bg-canvas-elevated rounded-lg p-1 border border-canvas-subtle">
               <button
                 onClick={() => setGridDensity(2)}

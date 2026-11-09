@@ -37,6 +37,7 @@ export function SyncCenter({ photos, onImportSyncedPhotos }: SyncCenterProps) {
     deviceName: string;
     platform: string;
     ip: string;
+    availableIps?: Array<{ name: string; address: string; isWifi: boolean; isRecommended: boolean }>;
     port: number;
     pin: string;
     syncDirectory: string;
@@ -276,11 +277,35 @@ export function SyncCenter({ photos, onImportSyncedPhotos }: SyncCenterProps) {
             </div>
 
             <div className="space-y-3">
-              <div className="p-3.5 rounded-2xl bg-black/40 border border-white/5 space-y-1">
-                <div className="text-[11px] text-slate-400 font-medium">Desktop IP & Port</div>
+              <div className="p-3.5 rounded-2xl bg-black/40 border border-white/5 space-y-2">
+                <div className="flex items-center justify-between text-[11px] text-slate-400 font-medium">
+                  <span>Desktop Wi-Fi LAN IP & Port</span>
+                  {serverStatus.availableIps && serverStatus.availableIps.length > 1 && (
+                    <span className="text-[10px] text-emerald-400 font-semibold bg-emerald-500/10 px-2 py-0.5 rounded-full">
+                      Recommended Wi-Fi
+                    </span>
+                  )}
+                </div>
                 <div className="text-sm font-mono font-bold text-slate-100 selection:bg-blue-500">
                   http://{serverStatus.ip}:{serverStatus.port}
                 </div>
+                {serverStatus.availableIps && serverStatus.availableIps.length > 1 && (
+                  <div className="pt-1 flex flex-wrap gap-1.5">
+                    {serverStatus.availableIps.map((iface) => (
+                      <button
+                        key={iface.address}
+                        onClick={() => setServerStatus((prev) => ({ ...prev, ip: iface.address }))}
+                        className={`text-[10px] font-mono px-2 py-1 rounded-lg border transition ${
+                          serverStatus.ip === iface.address
+                            ? 'bg-blue-600/30 border-blue-500 text-blue-200 font-semibold'
+                            : 'bg-white/5 border-white/10 text-slate-400 hover:text-slate-200'
+                        }`}
+                      >
+                        {iface.name}: {iface.address}
+                      </button>
+                    ))}
+                  </div>
+                )}
               </div>
 
               <div className="p-3.5 rounded-2xl bg-black/40 border border-white/5 space-y-1">

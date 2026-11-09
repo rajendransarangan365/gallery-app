@@ -15,6 +15,8 @@ export interface DiscoveryOptions {
   deviceName: string;
   deviceType: 'windows' | 'android';
   tcpSyncPort: number;
+  ip?: string;
+  pin?: string;
 }
 
 export class DiscoveryManager extends EventEmitter {
@@ -42,7 +44,7 @@ export class DiscoveryManager extends EventEmitter {
       });
 
       this.socket.on('message', (msg, rinfo) => {
-        this.handleIncomingBeacon(msg, rinfo.address);
+        this.handleIncomingBeacon(msg, rinfo.address, rinfo.port);
       });
 
       this.socket.bind(SYNC_BROADCAST_PORT, () => {
@@ -93,6 +95,8 @@ export class DiscoveryManager extends EventEmitter {
       name: this.options.deviceName,
       type: this.options.deviceType,
       port: this.options.tcpSyncPort,
+      ip: this.options.ip,
+      pin: this.options.pin,
     });
 
     const buffer = Buffer.from(beaconPayload);
@@ -111,9 +115,32 @@ export class DiscoveryManager extends EventEmitter {
     this.announceInterval.unref();
   }
 
-  private handleIncomingBeacon(buffer: Buffer, senderAddress: string): void {
+  private handleIncomingBeacon(buffer: Buffer, senderAddress: string, senderPort?: number): void {
     try {
-      const data = JSON.parse(buffer.toString('utf-8'));
+      const text = buffer.toString('utf-8');
+      if (text.includes('GALLERY_P2P_PROBE') || text.includes('GALLERY_DISCOVER')) {
+        if (this.socket && senderPort) {
+          const resp = Buffer.from(
+            JSON.stringify({
+              magic: SYNC_BEACON_MAGIC,
+              deviceId: this.options.deviceId,
+              name: this.options.deviceName,
+              type: this.options.deviceType,
+              port: this.options.tcpSyncPort,
+              ip: this.options.ip,
+              pin: this.options.pin,
+            })
+          );
+          try {
+            this.socket.send(resp, 0, resp.length, senderPort, senderAddress);
+          } catch {
+            // Ignore socket send error
+          }
+        }
+        return;
+      }
+
+      const data = JSON.parse(text);
       if (data.magic !== SYNC_BEACON_MAGIC) return;
       if (data.deviceId === this.options.deviceId) return; // Ignore own beacon
 
@@ -121,7 +148,7 @@ export class DiscoveryManager extends EventEmitter {
         id: data.deviceId,
         name: data.name || 'Nearby Device',
         deviceType: data.type || 'android',
-        address: senderAddress,
+        address: data.ip || senderAddress,
         port: Number(data.port) || 41236,
         lastSeen: Date.now(),
         isPaired: false,

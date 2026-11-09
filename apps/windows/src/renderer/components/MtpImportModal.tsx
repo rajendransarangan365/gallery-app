@@ -44,40 +44,37 @@ export function MtpImportModal({ device, onClose, onTransferComplete }: MtpImpor
   }, [device]);
 
   // Load photos from device
-  useEffect(() => {
-    let active = true;
+  const handleRescan = async (overridePath?: string) => {
+    setIsLoadingCandidates(true);
+    setErrorMessage(null);
 
-    async function loadCandidates() {
-      setIsLoadingCandidates(true);
-      setErrorMessage(null);
-
-      if (!window.electronAPI?.mtpScanDevicePhotos) {
-        setIsLoadingCandidates(false);
-        return;
-      }
-
-      try {
-        const found = await window.electronAPI.mtpScanDevicePhotos(device.path);
-        if (active) {
-          setCandidates(found);
-          // By default, select all discovered photos
-          setSelectedIndices(new Set(found.map((_, idx) => idx)));
-        }
-      } catch (err) {
-        if (active) {
-          setErrorMessage((err as Error).message);
-        }
-      } finally {
-        if (active) {
-          setIsLoadingCandidates(false);
-        }
-      }
+    if (!window.electronAPI?.mtpScanDevicePhotos) {
+      setIsLoadingCandidates(false);
+      return;
     }
 
-    loadCandidates();
-    return () => {
-      active = false;
-    };
+    try {
+      const target = overridePath || device.path;
+      const found = await window.electronAPI.mtpScanDevicePhotos(target);
+      setCandidates(found);
+      setSelectedIndices(new Set(found.map((_, idx) => idx)));
+    } catch (err) {
+      setErrorMessage((err as Error).message);
+    } finally {
+      setIsLoadingCandidates(false);
+    }
+  };
+
+  const handleBrowseDeviceFolder = async () => {
+    if (!window.electronAPI?.openDirectory) return;
+    const dir = await window.electronAPI.openDirectory();
+    if (dir) {
+      handleRescan(dir);
+    }
+  };
+
+  useEffect(() => {
+    handleRescan();
   }, [device]);
 
   // Listen for transfer progress
@@ -162,13 +159,22 @@ export function MtpImportModal({ device, onClose, onTransferComplete }: MtpImpor
               </p>
             </div>
           </div>
-          <button
-            onClick={onClose}
-            disabled={isTransferring}
-            className="p-1.5 rounded-xl text-slate-400 hover:text-white hover:bg-canvas-subtle transition-colors disabled:opacity-50"
-          >
-            <X className="w-5 h-5" />
-          </button>
+          <div className="flex items-center gap-2">
+            <button
+              onClick={handleBrowseDeviceFolder}
+              className="flex items-center gap-1.5 px-3 py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-300 border border-slate-700 rounded-lg text-xs font-semibold transition-all"
+            >
+              <FolderOpen className="w-3.5 h-3.5" />
+              Browse Folder
+            </button>
+            <button
+              onClick={onClose}
+              disabled={isTransferring}
+              className="p-1.5 rounded-xl text-slate-400 hover:text-white hover:bg-canvas-subtle transition-colors disabled:opacity-50"
+            >
+              <X className="w-5 h-5" />
+            </button>
+          </div>
         </header>
 
         {/* Modal Body */}
@@ -208,12 +214,30 @@ export function MtpImportModal({ device, onClose, onTransferComplete }: MtpImpor
             </div>
           ) : candidates.length === 0 ? (
             /* No Media Found State */
-            <div className="text-center py-16 space-y-3">
+            <div className="text-center py-10 space-y-4">
               <Camera className="w-10 h-10 text-slate-600 mx-auto" />
-              <p className="text-sm font-semibold text-slate-300">No New Photographs Found</p>
-              <p className="text-xs text-slate-400 max-w-sm mx-auto">
-                No supported photographic media was discovered in the camera folders of this device, or all photos are already indexed in your library.
-              </p>
+              <p className="text-sm font-semibold text-slate-300">No Media Files Detected</p>
+              <div className="bg-canvas-base border border-canvas-subtle rounded-xl p-4 max-w-md mx-auto text-left text-xs text-slate-400 space-y-2">
+                <p className="font-semibold text-slate-200">Phone Connection Checklist:</p>
+                <p>1. Unlock your phone screen (Android blocks USB file access while locked).</p>
+                <p>2. Swipe down from top of phone, tap "USB Preferences", and select <span className="text-blue-400 font-semibold">"File Transfer / Android Auto"</span> (not "Charging only").</p>
+                <p>3. Tap <span className="text-blue-400 font-semibold">"Rescan Phone"</span> below, or click <span className="text-blue-400 font-semibold">"Browse Folder"</span> to select your DCIM folder directly.</p>
+              </div>
+              <div className="flex items-center justify-center gap-3 pt-2">
+                <button
+                  onClick={() => handleRescan()}
+                  className="px-4 py-2 bg-blue-600 hover:bg-blue-500 text-white rounded-lg text-xs font-semibold shadow-md transition-all"
+                >
+                  Rescan Phone
+                </button>
+                <button
+                  onClick={handleBrowseDeviceFolder}
+                  className="flex items-center gap-1.5 px-4 py-2 bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 rounded-lg text-xs font-semibold transition-all"
+                >
+                  <FolderOpen className="w-3.5 h-3.5" />
+                  Browse Folder on Phone
+                </button>
+              </div>
             </div>
           ) : (
             /* Discovered Candidates Review */

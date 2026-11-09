@@ -45,6 +45,10 @@ import {
   UploadCloud as UploadCloudIcon,
   ChevronLeft as ChevronLeftIcon,
   ChevronRight as ChevronRightIcon,
+  Radio as RadioIcon,
+  Wifi as WifiIcon,
+  Cable as CableIcon,
+  HelpCircle as HelpCircleIcon,
 } from 'lucide-react-native';
 import { colors } from '@gallery/ui-tokens';
 import type { PhotoItem, GridDensity } from '@gallery/shared';
@@ -77,6 +81,9 @@ export default function AndroidApp() {
   const [desktopIp, setDesktopIp] = useState('192.168.1.');
   const [desktopPort, setDesktopPort] = useState('41236');
   const [desktopPin, setDesktopPin] = useState('');
+  const [phoneIp, setPhoneIp] = useState<string | null>(null);
+  const [isDiscovering, setIsDiscovering] = useState(false);
+  const [pingStatus, setPingStatus] = useState<string | null>(null);
   const [isSyncConnected, setIsSyncConnected] = useState(false);
   const [connectedHostName, setConnectedHostName] = useState<string | null>(null);
   const [isSyncing, setIsSyncing] = useState(false);
@@ -107,6 +114,23 @@ export default function AndroidApp() {
       ])
     ).start();
   }, [radarAnim]);
+
+  // Query local device Wi-Fi IP on mount
+  useEffect(() => {
+    if (NativeModules.MediaStoreScanner?.getLocalDeviceIp) {
+      NativeModules.MediaStoreScanner.getLocalDeviceIp()
+        .then((res: any) => {
+          if (res?.ip && res.ip !== '127.0.0.1') {
+            setPhoneIp(res.ip);
+            const parts = res.ip.split('.');
+            if (parts.length === 4) {
+              setDesktopIp(`${parts[0]}.${parts[1]}.${parts[2]}.`);
+            }
+          }
+        })
+        .catch(() => {});
+    }
+  }, []);
 
   // Initial Scan on Mount
   useEffect(() => {
@@ -173,6 +197,97 @@ export default function AndroidApp() {
     if (selectedAlbum === '__favorites__') return photos.filter((p) => p.isFavorite);
     return photos.filter((p: any) => p.bucketName === selectedAlbum);
   }, [photos, selectedAlbum]);
+
+  /**
+   * Automatically discovers Windows Desktop Sync Server via UDP beacon or probe
+   */
+  const handleDiscoverDesktop = async () => {
+    setIsDiscovering(true);
+    setPingStatus('Broadcasting Wi-Fi probe for Windows Desktop...');
+
+    try {
+      if (NativeModules.MediaStoreScanner?.discoverDesktopBeacons) {
+        const beacon = await NativeModules.MediaStoreScanner.discoverDesktopBeacons(3500);
+        if (beacon && beacon.success && beacon.ip) {
+          setDesktopIp(beacon.ip);
+          if (beacon.port) setDesktopPort(String(beacon.port));
+          if (beacon.pin) setDesktopPin(beacon.pin);
+          setPingStatus(`Found ${beacon.deviceName || 'Windows PC'} at ${beacon.ip}!`);
+          setSyncLog((prev) => [`[AUTO-DISCOVERED] ${beacon.deviceName} at ${beacon.ip}`, ...prev]);
+          setIsDiscovering(false);
+
+          // Direct connect
+          try {
+            const statusUrl = `http://${beacon.ip}:${beacon.port || '41236'}/api/status`;
+            const res = await fetch(statusUrl, { method: 'GET' });
+            if (res.ok) {
+              const data = await res.json();
+              setConnectedHostName(data.deviceName || 'Windows PC');
+              setIsSyncConnected(true);
+              setSyncLog((prev) => [`[CONNECTED] ${data.deviceName} (${data.ip})`, ...prev]);
+            }
+          } catch {
+            // Keep discovered IP
+          }
+          return;
+        }
+      }
+    } catch {
+      // Beacon fallback
+    }
+
+    // Try direct ping to currently entered IP
+    try {
+      const pingRes = await fetch(
+        `http://${desktopIp.trim()}:${desktopPort.trim()}/api/ping`,
+        { method: 'GET' }
+      );
+      if (pingRes.ok) {
+        setPingStatus(`Direct connection verified to ${desktopIp.trim()}! Connecting...`);
+        setIsDiscovering(false);
+        handleConnectDesktop();
+        return;
+      }
+    } catch {}
+
+    setIsDiscovering(false);
+    setPingStatus(
+      'No auto-reply received yet. Check the IP displayed on your Windows screen and tap Connect.'
+    );
+  };
+
+  /**
+   * Tests ping latency to desktop server
+   */
+  const handleTestPing = async () => {
+    if (!desktopIp.trim()) {
+      alert('Please enter Desktop IP address first.');
+      return;
+    }
+    setPingStatus('Testing reachability to desktop...');
+    const t0 = Date.now();
+    try {
+      const res = await fetch(
+        `http://${desktopIp.trim()}:${desktopPort.trim()}/api/ping`,
+        { method: 'GET' }
+      );
+      const elapsed = Date.now() - t0;
+      if (res.ok) {
+        const data = await res.json();
+        setPingStatus(
+          `Reachable! Latency: ${elapsed}ms (${data.deviceName || 'Windows Desktop'})`
+        );
+      } else {
+        setPingStatus(
+          `Server returned HTTP ${res.status}. Ensure PhotoGallery app is running on PC.`
+        );
+      }
+    } catch (err: any) {
+      setPingStatus(
+        `Unreachable: ${err.message}. Ensure PC & Phone are on the same Wi-Fi.`
+      );
+    }
+  };
 
   /**
    * Connects to Windows Desktop Sync Server
@@ -623,11 +738,29 @@ export default function AndroidApp() {
               <Text style={styles.radarStatusSub}>
                 Direct local Wi-Fi transfer with Windows Desktop. Zero cloud uploads.
               </Text>
+
+              {phoneIp && (
+                <View style={styles.phoneIpBadge}>
+                  <WifiIcon size={12} color="#10B981" />
+                  <Text style={styles.phoneIpText}>Phone Wi-Fi IP: {phoneIp}</Text>
+                </View>
+              )}
             </View>
 
             {/* Desktop Pairing Form */}
             <View style={styles.syncFormCard}>
               <Text style={styles.formTitle}>Windows Desktop Connection</Text>
+
+              <TouchableOpacity
+                style={styles.autoDiscoverBtn}
+                onPress={handleDiscoverDesktop}
+                disabled={isDiscovering}
+              >
+                <RadioIcon size={16} color="#FFFFFF" style={{ marginRight: 8 }} />
+                <Text style={styles.autoDiscoverText}>
+                  {isDiscovering ? 'Scanning Local Wi-Fi...' : 'Auto-Discover Windows Desktop'}
+                </Text>
+              </TouchableOpacity>
 
               <View style={styles.inputGroup}>
                 <Text style={styles.inputLabel}>Desktop LAN IP Address:</Text>
@@ -667,22 +800,40 @@ export default function AndroidApp() {
                 </View>
               </View>
 
-              <TouchableOpacity
-                style={[
-                  styles.primaryActionButton,
-                  isSyncConnected && styles.connectedButton,
-                ]}
-                onPress={handleConnectDesktop}
-              >
-                <View style={styles.buttonContentRow}>
-                  {isSyncConnected && (
-                    <CheckIcon size={16} color="#FFFFFF" style={{ marginRight: 6 }} />
-                  )}
-                  <Text style={styles.actionButtonText}>
-                    {isSyncConnected ? 'Connected to Windows' : 'Connect & Pair'}
-                  </Text>
+              <View style={styles.actionButtonsRow}>
+                <TouchableOpacity
+                  style={[
+                    styles.primaryActionButton,
+                    { flex: 1.2 },
+                    isSyncConnected && styles.connectedButton,
+                  ]}
+                  onPress={handleConnectDesktop}
+                >
+                  <View style={styles.buttonContentRow}>
+                    {isSyncConnected && (
+                      <CheckIcon size={16} color="#FFFFFF" style={{ marginRight: 6 }} />
+                    )}
+                    <Text style={styles.actionButtonText}>
+                      {isSyncConnected ? 'Connected' : 'Connect & Pair'}
+                    </Text>
+                  </View>
+                </TouchableOpacity>
+
+                <TouchableOpacity
+                  style={styles.testPingBtn}
+                  onPress={handleTestPing}
+                >
+                  <WifiIcon size={14} color="#CBD5E1" />
+                  <Text style={styles.testPingText}>Test Ping</Text>
+                </TouchableOpacity>
+              </View>
+
+              {pingStatus && (
+                <View style={styles.pingStatusCard}>
+                  <InfoIcon size={14} color="#60A5FA" style={{ marginRight: 8 }} />
+                  <Text style={styles.pingStatusText}>{pingStatus}</Text>
                 </View>
-              </TouchableOpacity>
+              )}
             </View>
 
             {/* Actions Card when connected */}
@@ -748,6 +899,27 @@ export default function AndroidApp() {
                 ))}
               </View>
             )}
+
+            {/* Connection & USB Troubleshooting Guide */}
+            <View style={styles.troubleshootCard}>
+              <Text style={styles.troubleshootTitle}>Connection & Transfer Guide</Text>
+
+              <View style={styles.troubleshootItem}>
+                <WifiIcon size={16} color="#10B981" />
+                <Text style={styles.troubleshootText}>
+                  <Text style={{ fontWeight: '700', color: '#F1F5F9' }}>Wi-Fi Connection: </Text>
+                  Ensure PC and Phone are on the same Wi-Fi router. Tap "Auto-Discover" or enter the IP displayed in the Windows PC app.
+                </Text>
+              </View>
+
+              <View style={styles.troubleshootItem}>
+                <CableIcon size={16} color="#3B82F6" />
+                <Text style={styles.troubleshootText}>
+                  <Text style={{ fontWeight: '700', color: '#F1F5F9' }}>USB Cable Transfer (MTP): </Text>
+                  Connect phone via USB, unlock your phone screen, and swipe down from the top to set USB mode to "File Transfer / Android Auto". Click "Review & Transfer" on PC.
+                </Text>
+              </View>
+            </View>
           </ScrollView>
         )}
       </View>
@@ -1392,6 +1564,108 @@ const styles = StyleSheet.create({
     color: '#94A3B8',
     textAlign: 'center',
     maxWidth: 260,
+  },
+  phoneIpBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    alignSelf: 'center',
+    backgroundColor: 'rgba(16, 185, 129, 0.12)',
+    borderWidth: 1,
+    borderColor: 'rgba(16, 185, 129, 0.25)',
+    borderRadius: 20,
+    paddingHorizontal: 12,
+    paddingVertical: 5,
+    marginTop: 10,
+    marginBottom: 4,
+  },
+  phoneIpText: {
+    fontSize: 12,
+    fontWeight: '600',
+    color: '#34D399',
+    marginLeft: 6,
+  },
+  autoDiscoverBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: '#2563EB',
+    borderRadius: 16,
+    paddingVertical: 12,
+    marginBottom: 14,
+    shadowColor: '#3B82F6',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
+    elevation: 4,
+  },
+  autoDiscoverText: {
+    fontSize: 13,
+    fontWeight: '700',
+    color: '#FFFFFF',
+  },
+  actionButtonsRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginTop: 6,
+  },
+  testPingBtn: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: 'rgba(255, 255, 255, 0.06)',
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.12)',
+    borderRadius: 16,
+    paddingVertical: 14,
+    marginLeft: 8,
+  },
+  testPingText: {
+    fontSize: 13,
+    fontWeight: '600',
+    color: '#CBD5E1',
+    marginLeft: 6,
+  },
+  pingStatusCard: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: 'rgba(59, 130, 246, 0.1)',
+    borderWidth: 1,
+    borderColor: 'rgba(59, 130, 246, 0.25)',
+    borderRadius: 14,
+    padding: 10,
+    marginTop: 12,
+  },
+  pingStatusText: {
+    fontSize: 12,
+    color: '#93C5FD',
+    flex: 1,
+  },
+  troubleshootCard: {
+    backgroundColor: '#121622',
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.08)',
+    borderRadius: 20,
+    padding: 16,
+    marginTop: 16,
+  },
+  troubleshootTitle: {
+    fontSize: 13,
+    fontWeight: '700',
+    color: '#F8FAFC',
+    marginBottom: 10,
+  },
+  troubleshootItem: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    marginBottom: 10,
+  },
+  troubleshootText: {
+    fontSize: 11,
+    color: '#94A3B8',
+    marginLeft: 8,
+    flex: 1,
+    lineHeight: 16,
   },
   syncFormCard: {
     backgroundColor: '#121622',

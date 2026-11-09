@@ -47,14 +47,72 @@ export class DesktopSyncServer {
     return this.currentPin;
   }
 
-  public getLocalIP(): string {
+  public getAllIPs(): Array<{ name: string; address: string; isWifi: boolean; isRecommended: boolean }> {
     const interfaces = os.networkInterfaces();
-    for (const name of Object.keys(interfaces)) {
-      for (const iface of interfaces[name] || []) {
+    const result: Array<{ name: string; address: string; isWifi: boolean; isRecommended: boolean }> = [];
+    const virtualKeywords = [
+      'vgate',
+      'vethernet',
+      'wsl',
+      'virtualbox',
+      'vmware',
+      'hyper-v',
+      'loopback',
+      'docker',
+      'teredo',
+      'tailscale',
+      'zerotier',
+      'wireguard',
+      'tun',
+      'tap',
+      'bluetooth',
+    ];
+
+    for (const [name, ifaceList] of Object.entries(interfaces)) {
+      if (!ifaceList) continue;
+      for (const iface of ifaceList) {
         if (iface.family === 'IPv4' && !iface.internal) {
-          return iface.address;
+          const lowerName = name.toLowerCase();
+          const isVirtual =
+            virtualKeywords.some((k) => lowerName.includes(k)) ||
+            iface.mac === '00:00:00:00:00:00' ||
+            iface.mac.startsWith('0a:00:27') ||
+            iface.address.startsWith('169.254.');
+          const isWifi =
+            lowerName.includes('wi-fi') ||
+            lowerName.includes('wifi') ||
+            lowerName.includes('wlan') ||
+            lowerName.includes('wireless');
+          const isPrivateLAN =
+            iface.address.startsWith('192.168.') ||
+            iface.address.startsWith('10.') ||
+            (iface.address.startsWith('172.') && !isVirtual);
+
+          result.push({
+            name,
+            address: iface.address,
+            isWifi,
+            isRecommended: !isVirtual && (isWifi || isPrivateLAN),
+          });
         }
       }
+    }
+
+    result.sort((a, b) => {
+      if (a.isRecommended && !b.isRecommended) return -1;
+      if (!a.isRecommended && b.isRecommended) return 1;
+      if (a.isWifi && !b.isWifi) return -1;
+      if (!a.isWifi && b.isWifi) return 1;
+      return 0;
+    });
+
+    return result;
+  }
+
+  public getLocalIP(): string {
+    const all = this.getAllIPs();
+    if (all.length > 0) {
+      return all[0].address;
     }
     return '127.0.0.1';
   }
@@ -65,6 +123,7 @@ export class DesktopSyncServer {
       deviceName: os.hostname(),
       platform: 'windows',
       ip: this.getLocalIP(),
+      availableIps: this.getAllIPs(),
       port: this.port,
       pin: this.currentPin,
       syncDirectory: this.syncDirectory,
@@ -95,6 +154,20 @@ export class DesktopSyncServer {
         const url = new URL(req.url || '/', `http://${req.headers.host || 'localhost'}`);
 
         try {
+          // 0. Ping / Reachability Probe
+          if (url.pathname === '/api/ping' && req.method === 'GET') {
+            res.writeHead(200, { 'Content-Type': 'application/json' });
+            res.end(
+              JSON.stringify({
+                pong: true,
+                time: Date.now(),
+                deviceName: os.hostname(),
+                ip: this.getLocalIP(),
+              })
+            );
+            return;
+          }
+
           // 1. Status / Health Check
           if (url.pathname === '/api/status' && req.method === 'GET') {
             res.writeHead(200, { 'Content-Type': 'application/json' });
@@ -294,6 +367,8 @@ export class DesktopSyncServer {
         deviceName: `${os.hostname()} (Windows)`,
         deviceType: 'windows',
         tcpSyncPort: this.port,
+        ip: this.getLocalIP(),
+        pin: this.currentPin,
       });
 
       this.discoveryManager.on('peerFound', (peer) => {

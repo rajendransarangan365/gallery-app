@@ -7,14 +7,11 @@ import fs from 'node:fs';
 import path from 'node:path';
 import crypto from 'node:crypto';
 import { exec } from 'node:child_process';
-import { promisify } from 'node:util';
 import type { PhotoItem } from '@gallery/shared';
 import { ExclusionManager } from '@gallery/security';
 import { ExifExtractor } from '@gallery/metadata-engine';
 import { computeFileHash } from './hash.js';
 import { ThumbnailCacheManager } from './thumbnail-cache.js';
-
-const execAsync = promisify(exec);
 
 export interface MtpDevice {
   id: string;
@@ -50,9 +47,27 @@ export interface MtpTransferOptions {
   signal?: AbortSignal;
 }
 
+function runPowerShellScript(script: string, timeoutMs = 15000): Promise<string> {
+  const b64 = Buffer.from(script, 'utf16le').toString('base64');
+  return new Promise((resolve) => {
+    exec(
+      `powershell.exe -NoProfile -ExecutionPolicy Bypass -EncodedCommand ${b64}`,
+      { timeout: timeoutMs, maxBuffer: 15 * 1024 * 1024 },
+      (err, stdout) => {
+        if (err) {
+          resolve('');
+        } else {
+          resolve(stdout || '');
+        }
+      }
+    );
+  });
+}
+
 export class MtpManager {
   /**
-   * Queries Windows WPD (Windows Portable Devices) and PnPEntity for connected Android/MTP mobile devices.
+   * Queries Windows WPD (Windows Portable Devices), Shell.Application namespace,
+   * and PnPEntity for connected Android/MTP mobile devices.
    * Real hardware check: Inspects actual system devices. Returns empty array if none are plugged in.
    */
   public static async detectConnectedDevices(): Promise<MtpDevice[]> {
@@ -61,10 +76,63 @@ export class MtpManager {
     }
 
     try {
-      // 1. Query WMI / CIM for WPD and WUDFWpdMtp class entities
-      const psCommand = `powershell -NoProfile -Command "Get-CimInstance Win32_PnPEntity | Where-Object { $_.PNPClass -eq 'WPD' -or $_.Service -eq 'WUDFWpdMtp' } | Select-Object Name, DeviceID, Manufacturer | ConvertTo-Json"`;
-      const { stdout } = await execAsync(psCommand, { timeout: 8000 });
+      const psScript = `
+$results = @()
 
+# 1. Query Win32_PnPEntity for connected WPD / MTP devices
+try {
+    $pnp = Get-CimInstance Win32_PnPEntity -ErrorAction SilentlyContinue | Where-Object { 
+        $_.PNPClass -eq 'WPD' -or 
+        $_.Service -eq 'WUDFWpdMtp' -or 
+        $_.Description -match 'MTP|Android|Phone|Portable|Apple Mobile Device|Digital Still Camera' 
+    }
+    foreach ($dev in $pnp) {
+        if ($dev.Name) {
+            $results += [PSCustomObject]@{
+                Id = if ($dev.DeviceID) { $dev.DeviceID } else { [Guid]::NewGuid().ToString() }
+                Name = $dev.Name
+                Manufacturer = $dev.Manufacturer
+                Kind = 'WPD'
+            }
+        }
+    }
+} catch {}
+
+# 2. Query Shell.Application drives namespace (17 = ssfDRIVES) for portable devices
+try {
+    $shell = New-Object -ComObject Shell.Application
+    $drives = $shell.Namespace(17)
+    if ($drives) {
+        foreach ($item in $drives.Items()) {
+            if ($item.Type -match 'Portable|Phone|Camera|Mobile' -or $item.Path -match '::\\{20D04FE0') {
+                $results += [PSCustomObject]@{
+                    Id = $item.Path
+                    Name = $item.Name
+                    Manufacturer = 'Mobile Device'
+                    Kind = 'Shell'
+                }
+            }
+        }
+    }
+} catch {}
+
+# 3. Query removable disk drives (e.g. SD cards / USB storage)
+try {
+    Get-CimInstance Win32_LogicalDisk -Filter "DriveType = 2" -ErrorAction SilentlyContinue | ForEach-Object {
+        $results += [PSCustomObject]@{
+            Id = $_.DeviceID
+            Name = if ($_.VolumeName) { "$($_.VolumeName) ($($_.DeviceID))" } else { "Removable Storage ($($_.DeviceID))" }
+            Manufacturer = 'Removable Disk'
+            Kind = 'Drive'
+            DriveLetter = $_.DeviceID
+        }
+    }
+} catch {}
+
+$results | ConvertTo-Json -Depth 3
+`;
+
+      const stdout = await runPowerShellScript(psScript, 8000);
       if (!stdout || !stdout.trim()) {
         return [];
       }
@@ -78,16 +146,23 @@ export class MtpManager {
 
       const rawDevices = Array.isArray(parsed) ? parsed : [parsed];
       const devices: MtpDevice[] = [];
+      const seenNames = new Set<string>();
 
       for (const raw of rawDevices) {
         if (!raw || !raw.Name) continue;
         const name = String(raw.Name).trim();
-        const deviceId = String(raw.DeviceID || crypto.randomUUID());
+        if (seenNames.has(name.toLowerCase())) continue;
+        seenNames.add(name.toLowerCase());
+
+        const deviceId = String(raw.Id || crypto.randomUUID());
 
         // Check if device maps to a drive letter or shell namespace
         let devPath = '';
-        if (/^[A-Z]:\\?$/i.test(name)) {
-          devPath = name.endsWith('\\') ? name : `${name}\\`;
+        if (raw.DriveLetter || /^[A-Z]:\\?$/i.test(name)) {
+          const letter = (raw.DriveLetter || name).replace(/\\$/, '');
+          devPath = `${letter}\\`;
+        } else {
+          devPath = `wpd://${name}`;
         }
 
         devices.push({
@@ -95,7 +170,7 @@ export class MtpManager {
           name: name.length > 3 ? name : `Android Device (${name})`,
           path: devPath,
           manufacturer: raw.Manufacturer ? String(raw.Manufacturer).trim() : undefined,
-          isStorageAccessible: Boolean(devPath && fs.existsSync(devPath)),
+          isStorageAccessible: true,
         });
       }
 
@@ -116,11 +191,98 @@ export class MtpManager {
     exclusionManager: ExclusionManager,
     signal?: AbortSignal
   ): Promise<MtpPhotoCandidate[]> {
-    if (!devicePath || !fs.existsSync(devicePath)) {
+    if (!devicePath) {
       return [];
     }
 
     if (exclusionManager.isPathExcluded(devicePath)) {
+      return [];
+    }
+
+    const supportedExts = new Set(['.jpg', '.jpeg', '.png', '.webp', '.heic', '.avif', '.mp4']);
+
+    // Case 1: WPD / MTP Shell Namespace Device
+    if (devicePath.startsWith('wpd://')) {
+      const deviceName = devicePath.replace('wpd://', '').trim();
+      const escapedDeviceName = deviceName.replace(/'/g, "''");
+
+      const scanScript = `
+$shell = New-Object -ComObject Shell.Application
+$drives = $shell.Namespace(17)
+$targetItem = $null
+
+foreach ($item in $drives.Items()) {
+    if ($item.Name -eq '${escapedDeviceName}' -or $item.Path -eq '${escapedDeviceName}') {
+        $targetItem = $item
+        break
+    }
+}
+
+if (-not $targetItem) {
+    foreach ($item in $drives.Items()) {
+        if ($item.Name -like '*${escapedDeviceName}*') {
+            $targetItem = $item
+            break
+        }
+    }
+}
+
+$photos = @()
+if ($targetItem) {
+    function Scan-Folder($folder, $depth) {
+        if ($depth -gt 5) { return }
+        try {
+            foreach ($sub in $folder.Items()) {
+                if ($sub.IsFolder) {
+                    $name = $sub.Name
+                    if ($name -match '^(DCIM|Pictures|Camera|Photos|Images|Download|WhatsApp)$' -or $depth -lt 2) {
+                        Scan-Folder $sub.GetFolder ($depth + 1)
+                    }
+                } else {
+                    $ext = [System.IO.Path]::GetExtension($sub.Name).ToLower()
+                    if ($ext -match '^\\.(jpg|jpeg|png|webp|heic|avif|mp4)$') {
+                        $photos += [PSCustomObject]@{
+                            FileName = $sub.Name
+                            SourceUri = "wpd://${escapedDeviceName}|$($sub.Path)"
+                            FileSize = $sub.Size
+                            ModifiedDate = if ($sub.ModifyDate) { [string]$sub.ModifyDate } else { (Get-Date).ToString("o") }
+                        }
+                    }
+                }
+            }
+        } catch {}
+    }
+
+    Scan-Folder $targetItem.GetFolder 0
+}
+
+$photos | Select-Object -First 2500 | ConvertTo-Json -Depth 3
+`;
+
+      const stdout = await runPowerShellScript(scanScript, 20000);
+      if (!stdout || !stdout.trim()) {
+        return [];
+      }
+
+      try {
+        const parsed = JSON.parse(stdout);
+        const rawItems = Array.isArray(parsed) ? parsed : [parsed];
+        return rawItems
+          .filter((item: any) => item && item.FileName)
+          .map((item: any) => ({
+            fileName: String(item.FileName),
+            sourceUri: String(item.SourceUri),
+            fileSize: Number(item.FileSize) || 0,
+            modifiedDate: item.ModifiedDate ? new Date(item.ModifiedDate).toISOString() : new Date().toISOString(),
+            isDuplicate: false,
+          }));
+      } catch {
+        return [];
+      }
+    }
+
+    // Case 2: Standard Filesystem Path (Drives, Folders, SD Cards)
+    if (!fs.existsSync(devicePath)) {
       return [];
     }
 
@@ -139,8 +301,6 @@ export class MtpManager {
     if (directoriesToScan.length === 0) {
       directoriesToScan.push(devicePath);
     }
-
-    const supportedExts = new Set(['.jpg', '.jpeg', '.png', '.webp', '.heic', '.avif', '.mp4']);
 
     const traverse = async (dir: string) => {
       if (signal?.aborted) return;
@@ -243,8 +403,48 @@ export class MtpManager {
       }
 
       try {
-        // Stream copy source -> destination
-        await fs.promises.copyFile(candidate.sourceUri, targetFilePath);
+        if (candidate.sourceUri.startsWith('wpd://')) {
+          // Copy via Windows Shell COM
+          const parts = candidate.sourceUri.replace('wpd://', '').split('|');
+          const devName = parts[0];
+          const shellPath = parts[1] || candidate.fileName;
+          const copyScript = `
+$shell = New-Object -ComObject Shell.Application
+$drives = $shell.Namespace(17)
+$destFolder = $shell.Namespace('${destinationDir.replace(/'/g, "''")}')
+
+$targetItem = $null
+foreach ($item in $drives.Items()) {
+    if ($item.Name -eq '${devName.replace(/'/g, "''")}') {
+        $targetItem = $item
+        break
+    }
+}
+
+if ($targetItem -and $destFolder) {
+    function FindAndCopy($folder, $fName) {
+        foreach ($sub in $folder.Items()) {
+            if ($sub.IsFolder) {
+                FindAndCopy $sub.GetFolder $fName
+            } elseif ($sub.Name -eq $fName) {
+                $destFolder.CopyHere($sub, 16)
+                break
+            }
+        }
+    }
+    FindAndCopy $targetItem.GetFolder '${candidate.fileName.replace(/'/g, "''")}'
+}
+`;
+          await runPowerShellScript(copyScript, 10000);
+        } else {
+          // Stream copy source -> destination
+          await fs.promises.copyFile(candidate.sourceUri, targetFilePath);
+        }
+
+        if (!fs.existsSync(targetFilePath)) {
+          failedCount++;
+          continue;
+        }
 
         // Verify SHA-256 integrity of copied file
         const contentHash = await computeFileHash(targetFilePath);
@@ -299,4 +499,3 @@ export class MtpManager {
     };
   }
 }
-
