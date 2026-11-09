@@ -106,6 +106,7 @@ export class DesktopSyncServer {
             status: this.server ? 'online' : 'stopped',
             deviceName: os.hostname(),
             platform: 'windows',
+            version: '1.0.22',
             ip: this.getLocalIP(),
             availableIps: this.getAllIPs(),
             port: this.port,

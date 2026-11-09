@@ -1,6 +1,6 @@
 {
   "name": "@gallery/ui-tokens",
-  "version": "0.1.0-alpha",
+  "version": "1.0.22",
   "private": true,
   "type": "module",
   "main": "./dist/index.js",
@@ -21,4 +21,3 @@
     "@types/node": "^22.13.10"
   }
 }
-

@@ -1,6 +1,6 @@
 {
   "name": "@gallery/ai-engine",
-  "version": "0.1.0-alpha",
+  "version": "1.0.22",
   "private": true,
   "type": "module",
   "main": "./dist/index.js",
@@ -26,4 +26,3 @@
     "typescript": "^5.8.2"
   }
 }
-

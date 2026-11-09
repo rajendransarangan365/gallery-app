@@ -35,6 +35,7 @@ export declare class DesktopSyncServer {
         status: string;
         deviceName: string;
         platform: string;
+        version: string;
         ip: string;
         availableIps: {
             name: string;
