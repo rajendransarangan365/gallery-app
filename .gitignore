@@ -6,6 +6,7 @@ node_modules/
 dist/
 dist-installer/
 build/
+!apps/windows/build/
 out/
 dist-release/
 test/*.js
