@@ -709,24 +709,18 @@ export default function App() {
                 )}
               </div>
             </div>
-          ) : photos.length === 0 ? (
-            /* Zero Mock Data: Clean Empty State with Real Scan Trigger */
-            <div className="h-full flex flex-col items-center justify-center text-center max-w-md mx-auto">
-              <div className="w-16 h-16 rounded-2xl bg-canvas-elevated border border-canvas-subtle flex items-center justify-center text-blue-400 mb-4 shadow-xl">
-                <Camera className="w-8 h-8" />
-              </div>
-              <h3 className="text-lg font-semibold text-slate-100">Your Local Gallery is Ready</h3>
-              <p className="text-sm text-slate-400 mt-1 mb-6">
-                Zero mock data policy active. Scan any local directory on this PC to index real photographs with EXIF, GPS, and progressive thumbnails.
-              </p>
-              <button
-                onClick={handleSelectFolder}
-                className="px-5 py-2.5 bg-blue-600 hover:bg-blue-500 text-white rounded-xl text-sm font-medium shadow-lg shadow-blue-500/25 transition-all flex items-center gap-2"
-              >
-                <FolderOpen className="w-4 h-4" />
-                Select Photos Folder to Scan
-              </button>
-            </div>
+          ) : activeTab === 'sync' ? (
+            /* SyncFlow P2P Engine View */
+            <SyncCenter
+              photos={photos}
+              onImportSyncedPhotos={(newPhotos) => setPhotos((prev) => [...prev, ...newPhotos])}
+              activeMtpDevice={activeMtpDevice}
+              onOpenMtpModal={() => setIsMtpModalOpen(true)}
+              onCheckMtpDevices={checkMtpDevices}
+            />
+          ) : activeTab === 'inspector' ? (
+            /* Reverse Engineer Anything (REA) Inspector View */
+            <ReaInspector />
           ) : activeTab === 'map' ? (
             /* Interactive Geographic Map View */
             <MapView
@@ -747,15 +741,42 @@ export default function App() {
               }}
               onRenamePerson={handleRenamePerson}
             />
-          ) : activeTab === 'sync' ? (
-            /* SyncFlow P2P Engine View */
-            <SyncCenter
-              photos={photos}
-              onImportSyncedPhotos={(newPhotos) => setPhotos((prev) => [...prev, ...newPhotos])}
-            />
-          ) : activeTab === 'inspector' ? (
-            /* Reverse Engineer Anything (REA) Inspector View */
-            <ReaInspector />
+          ) : photos.length === 0 ? (
+            /* Zero Mock Data: Clean Empty State with Real Scan & Device Import Triggers */
+            <div className="h-full flex flex-col items-center justify-center text-center max-w-md mx-auto">
+              <div className="w-16 h-16 rounded-2xl bg-canvas-elevated border border-canvas-subtle flex items-center justify-center text-blue-400 mb-4 shadow-xl">
+                <Camera className="w-8 h-8" />
+              </div>
+              <h3 className="text-lg font-semibold text-slate-100">Your Local Gallery is Ready</h3>
+              <p className="text-sm text-slate-400 mt-1 mb-6">
+                Zero mock data policy active. Scan any local directory on this PC, transfer from your connected phone via USB, or connect wirelessly via SyncFlow.
+              </p>
+              <div className="flex flex-col sm:flex-row items-center gap-3">
+                <button
+                  onClick={handleSelectFolder}
+                  className="px-5 py-2.5 bg-blue-600 hover:bg-blue-500 text-white rounded-xl text-sm font-medium shadow-lg shadow-blue-500/25 transition-all flex items-center gap-2"
+                >
+                  <FolderOpen className="w-4 h-4" />
+                  Select Photos Folder to Scan
+                </button>
+                {activeMtpDevice && (
+                  <button
+                    onClick={() => setIsMtpModalOpen(true)}
+                    className="px-4 py-2.5 bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl text-sm font-medium shadow-lg shadow-indigo-500/25 transition-all flex items-center gap-2"
+                  >
+                    <Smartphone className="w-4 h-4" />
+                    Import from Phone (USB)
+                  </button>
+                )}
+                <button
+                  onClick={() => setActiveTab('sync')}
+                  className="px-4 py-2.5 bg-canvas-elevated hover:bg-canvas-subtle border border-canvas-subtle text-slate-200 rounded-xl text-sm font-medium transition-all flex items-center gap-2"
+                >
+                  <RefreshCw className="w-4 h-4 text-blue-400" />
+                  Open SyncFlow Wi-Fi
+                </button>
+              </div>
+            </div>
           ) : activeTab === 'calendar' ? (
             /* Calendar Grouping View */
             <div className="space-y-8">

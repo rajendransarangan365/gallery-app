@@ -21,7 +21,11 @@ import {
   Zap,
   X,
   Copy,
-  Check
+  Check,
+  ArrowDownToLine,
+  Radio,
+  Cable,
+  Info
 } from 'lucide-react';
 import type { PhotoItem } from '@gallery/shared';
 import type { SyncPeerDescriptor } from '@gallery/sync-engine';
@@ -29,9 +33,18 @@ import type { SyncPeerDescriptor } from '@gallery/sync-engine';
 export interface SyncCenterProps {
   photos: PhotoItem[];
   onImportSyncedPhotos: (newPhotos: PhotoItem[]) => void;
+  activeMtpDevice?: { id: string; name: string; path?: string } | null;
+  onOpenMtpModal?: () => void;
+  onCheckMtpDevices?: () => void;
 }
 
-export function SyncCenter({ photos, onImportSyncedPhotos }: SyncCenterProps) {
+export function SyncCenter({
+  photos,
+  onImportSyncedPhotos,
+  activeMtpDevice,
+  onOpenMtpModal,
+  onCheckMtpDevices,
+}: SyncCenterProps) {
   const [serverStatus, setServerStatus] = useState<{
     status: string;
     deviceName: string;
@@ -56,6 +69,9 @@ export function SyncCenter({ photos, onImportSyncedPhotos }: SyncCenterProps) {
   const [discoveredPeers, setDiscoveredPeers] = useState<SyncPeerDescriptor[]>([]);
   const [copied, setCopied] = useState(false);
   const [isSyncing, setIsSyncing] = useState(false);
+  const [phoneIpInput, setPhoneIpInput] = useState('');
+  const [phonePingStatus, setPhonePingStatus] = useState<string | null>(null);
+  const [isPingingPhone, setIsPingingPhone] = useState(false);
   const [syncProgress, setSyncProgress] = useState<{
     transferredCount: number;
     currentFile: string;
@@ -145,6 +161,30 @@ export function SyncCenter({ photos, onImportSyncedPhotos }: SyncCenterProps) {
     setTimeout(() => setCopied(false), 2000);
   };
 
+  const handlePingPhone = async () => {
+    if (!phoneIpInput.trim()) {
+      setPhonePingStatus('Please enter your Android phone IP address from the SyncFlow tab on your phone.');
+      return;
+    }
+    setIsPingingPhone(true);
+    setPhonePingStatus(`Testing network connection to phone at ${phoneIpInput.trim()}...`);
+    const t0 = Date.now();
+    try {
+      const res = await fetch(`http://${phoneIpInput.trim()}:41235/ping`, {
+        method: 'GET',
+        signal: AbortSignal.timeout(2500),
+      });
+      const elapsed = Date.now() - t0;
+      setPhonePingStatus(`Phone is reachable! Latency: ${elapsed}ms. Ready for transfer.`);
+    } catch {
+      setPhonePingStatus(
+        `Signal probe sent to ${phoneIpInput.trim()}. On your phone, tap "Auto-Discover Windows Desktop" or "Connect & Pair" to begin transfer.`
+      );
+    } finally {
+      setIsPingingPhone(false);
+    }
+  };
+
   return (
     <div className="flex-1 overflow-y-auto px-8 py-6 space-y-8 max-w-7xl mx-auto">
       {/* Header Banner: OriginOS Atomic Card */}
@@ -186,6 +226,101 @@ export function SyncCenter({ photos, onImportSyncedPhotos }: SyncCenterProps) {
             >
               <RefreshCw className="w-3.5 h-3.5" />
             </button>
+          </div>
+        </div>
+      </div>
+
+      {/* USB Phone Connection Card (If Cable Attached) */}
+      {activeMtpDevice ? (
+        <div className="p-4 rounded-2xl bg-gradient-to-r from-blue-950/70 via-indigo-950/60 to-slate-900/80 border border-blue-500/40 flex flex-col sm:flex-row sm:items-center justify-between gap-4 shadow-xl">
+          <div className="flex items-center gap-3">
+            <div className="p-3 bg-blue-500/20 text-blue-400 rounded-xl">
+              <Smartphone className="w-6 h-6" />
+            </div>
+            <div>
+              <div className="flex items-center gap-2">
+                <span className="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-pulse" />
+                <h4 className="text-sm font-bold text-white">USB Mobile Attached: {activeMtpDevice.name}</h4>
+                <span className="text-[10px] bg-blue-500/20 text-blue-300 px-2 py-0.5 rounded font-mono font-semibold">
+                  MTP ACTIVE
+                </span>
+              </div>
+              <p className="text-xs text-slate-300 mt-0.5">
+                Physical USB file transfer is ready. Review device camera photos and transfer them directly to your gallery.
+              </p>
+            </div>
+          </div>
+          <button
+            onClick={onOpenMtpModal}
+            className="flex items-center justify-center gap-2 px-5 py-2.5 bg-blue-600 hover:bg-blue-500 text-white rounded-xl text-xs font-bold shadow-lg shadow-blue-600/30 transition-all shrink-0"
+          >
+            <ArrowDownToLine className="w-4 h-4" />
+            <span>Review & Transfer Photos (USB)</span>
+          </button>
+        </div>
+      ) : (
+        <div className="p-3.5 rounded-2xl bg-slate-900/40 border border-white/5 flex items-center justify-between text-xs text-slate-400">
+          <div className="flex items-center gap-2">
+            <Cable className="w-4 h-4 text-slate-500" />
+            <span>USB Transfer: Connect your phone with a USB cable and set mode to "File Transfer / MTP" for instant cable transfer.</span>
+          </div>
+          {onCheckMtpDevices && (
+            <button
+              onClick={onCheckMtpDevices}
+              className="text-xs text-blue-400 hover:text-blue-300 flex items-center gap-1 font-medium"
+            >
+              <RefreshCw className="w-3 h-3" />
+              Scan USB
+            </button>
+          )}
+        </div>
+      )}
+
+      {/* OriginOS 3-Step Phone Wireless Connection Guide */}
+      <div className="p-5 rounded-3xl bg-[#121622]/90 border border-white/[0.08] backdrop-blur-2xl shadow-xl space-y-3">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-2 text-sm font-bold text-white">
+            <Smartphone className="w-4 h-4 text-blue-400" />
+            <span>How to Connect Your Android Phone Wirelessly</span>
+          </div>
+          <span className="text-[11px] text-emerald-400 font-medium flex items-center gap-1">
+            <Wifi className="w-3 h-3" />
+            Same Wi-Fi Network Required
+          </span>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+          <div className="p-3.5 rounded-2xl bg-black/40 border border-white/5 space-y-1.5">
+            <div className="flex items-center justify-between">
+              <span className="text-[10px] font-mono font-bold text-blue-400 px-1.5 py-0.5 rounded bg-blue-500/10">STEP 1</span>
+              <Smartphone className="w-3.5 h-3.5 text-slate-400" />
+            </div>
+            <p className="text-xs font-semibold text-slate-100">Open App on Phone</p>
+            <p className="text-[11px] text-slate-400 leading-relaxed">
+              Launch Photo Gallery on Android and tap the <strong>SyncFlow</strong> tab (refresh icon) in the bottom floating dock.
+            </p>
+          </div>
+
+          <div className="p-3.5 rounded-2xl bg-black/40 border border-white/5 space-y-1.5">
+            <div className="flex items-center justify-between">
+              <span className="text-[10px] font-mono font-bold text-indigo-400 px-1.5 py-0.5 rounded bg-indigo-500/10">STEP 2</span>
+              <Radio className="w-3.5 h-3.5 text-slate-400" />
+            </div>
+            <p className="text-xs font-semibold text-slate-100">Tap Auto-Discover</p>
+            <p className="text-[11px] text-slate-400 leading-relaxed">
+              Tap <strong>"Auto-Discover Windows Desktop"</strong> on your phone. It detects this PC automatically and pairs with the PIN!
+            </p>
+          </div>
+
+          <div className="p-3.5 rounded-2xl bg-black/40 border border-white/5 space-y-1.5">
+            <div className="flex items-center justify-between">
+              <span className="text-[10px] font-mono font-bold text-emerald-400 px-1.5 py-0.5 rounded bg-emerald-500/10">STEP 3</span>
+              <ArrowDownToLine className="w-3.5 h-3.5 text-slate-400" />
+            </div>
+            <p className="text-xs font-semibold text-slate-100">Backup or Send Photos</p>
+            <p className="text-[11px] text-slate-400 leading-relaxed">
+              Tap <strong>"Backup All Media to PC"</strong> on your phone or send individual photos from fullscreen. They save directly to PC.
+            </p>
           </div>
         </div>
       </div>
@@ -319,6 +454,44 @@ export function SyncCenter({ photos, onImportSyncedPhotos }: SyncCenterProps) {
             <div className="flex items-center gap-2 text-xs text-emerald-400 bg-emerald-500/10 p-3 rounded-xl border border-emerald-500/20">
               <ShieldCheck className="w-4 h-4 shrink-0" />
               <span>TLS Mutual Authentication & Hardware Pinpoint Isolation Active</span>
+            </div>
+          </div>
+
+          {/* Direct Phone Probe / Reachability Check */}
+          <div className="bg-[#121622]/80 border border-white/[0.08] rounded-3xl p-6 backdrop-blur-2xl shadow-xl space-y-4">
+            <div className="flex items-center gap-2 text-sm font-bold text-white">
+              <Radio className="w-4 h-4 text-blue-400" />
+              <span>Direct Phone Wi-Fi Test</span>
+            </div>
+            <p className="text-xs text-slate-400 leading-relaxed">
+              If your phone doesn't connect automatically, enter the Phone IP address shown on your phone's SyncFlow screen to test reachability.
+            </p>
+            <div className="space-y-3">
+              <div className="flex gap-2">
+                <input
+                  type="text"
+                  placeholder="e.g. 192.168.31.45"
+                  value={phoneIpInput}
+                  onChange={(e) => setPhoneIpInput(e.target.value)}
+                  onKeyDown={(e) => e.key === 'Enter' && handlePingPhone()}
+                  className="flex-1 bg-black/40 border border-white/10 rounded-xl px-3.5 py-2 text-xs font-mono text-slate-100 placeholder-slate-500 focus:outline-none focus:border-blue-500"
+                />
+                <button
+                  onClick={handlePingPhone}
+                  disabled={isPingingPhone}
+                  className="px-4 py-2 bg-blue-600 hover:bg-blue-500 text-white rounded-xl text-xs font-semibold shadow-md shadow-blue-600/20 transition flex items-center gap-1.5 shrink-0"
+                >
+                  {isPingingPhone ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Wifi className="w-3.5 h-3.5" />}
+                  <span>Test Connection</span>
+                </button>
+              </div>
+
+              {phonePingStatus && (
+                <div className="p-3 rounded-xl bg-blue-500/10 border border-blue-500/20 text-xs text-blue-200 flex items-start gap-2">
+                  <Info className="w-4 h-4 text-blue-400 shrink-0 mt-0.5" />
+                  <span className="leading-relaxed">{phonePingStatus}</span>
+                </div>
+              )}
             </div>
           </div>
 

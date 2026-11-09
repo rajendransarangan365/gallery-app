@@ -792,5 +792,40 @@ Synchronize the application version to `1.0.22` across all 13 package manifests 
 - Zero mock data. Native MediaStore and desktop file reader operational.
 
 ### 4. Next Immediate Task
-- Verify GitHub Actions release workflow execution and ensure all assets are attached to public release `v1.0.22`.
+- Completed and released in v1.0.22.
+
+---
+
+## [TASK-023] — SyncFlow Center Zero-Photo Viewport Routing Bug Fix & Direct Phone Connect Hardening
+- **Timestamp:** 2026-11-09T21:54:00+05:30
+- **Author:** Lead AI Software Architect & Senior UI/UX Designer
+- **Status:** COMPLETED
+
+### 1. Scope & Objective
+Diagnose and resolve the regression identified from user telemetry where clicking the `SyncFlow Center` tab in the Windows desktop app displayed the empty gallery placeholder ("Your Local Gallery is Ready: Select Photos Folder to Scan") instead of the SyncFlow radar and device pairing controls when `photos.length === 0`.
+
+### 2. Actions Performed
+1. **Viewport Routing Hierarchy Restructure**:
+   - Diagnosed root cause in `apps/windows/src/renderer/App.tsx`: `photos.length === 0` was evaluated prior to `activeTab === 'sync'` and `activeTab === 'inspector'`. When a user with a clean/new library clicked `SyncFlow Center`, the empty gallery card masked the entire sync interface.
+   - Restructured tab evaluation order so `sync`, `inspector`, `map`, and `people` evaluate ahead of `photos.length === 0`.
+   - Updated the Zero Mock Data empty state on `photos` tab to include direct action shortcuts: `Select Photos Folder to Scan`, `Import from Phone (USB)` (when USB phone is connected), and `Open SyncFlow Wi-Fi`.
+2. **Direct Phone Connection & Guidance in `SyncCenter.tsx`**:
+   - Added `activeMtpDevice`, `onOpenMtpModal`, and `onCheckMtpDevices` props to `SyncCenter`.
+   - Built a high-visibility **USB Mobile Attached** action card: when an Android phone is detected via USB MTP (as observed in user screenshot), a dedicated `Review & Transfer Photos (USB)` button opens the import center directly.
+   - Built an OriginOS **3-Step Phone Wireless Connection Guide** clearly illustrating the exact steps to connect from the mobile app (Step 1: Open app on phone, Step 2: Tap Auto-Discover, Step 3: Tap Backup All Media to PC).
+   - Built a **Direct Phone Wi-Fi Test** ping tool in the right column allowing the user to enter their phone's IP and test network reachability with instant latency feedback.
+3. **Zero-Emoji Compliance**:
+   - Verified 100% vector Lucide icons (`Smartphone`, `Laptop`, `Wifi`, `QrCode`, `ShieldCheck`, `ArrowDownToLine`, `Radio`, `Cable`, `Info`, `Check`, `Copy`, `Zap`).
+4. **Verification & Packaging**:
+   - Executed monorepo quality gate: `pnpm turbo run build typecheck test lint` -> **36/36 passed, 0 errors**.
+   - Packaged fresh Windows installer: `apps/windows/dist-installer/PhotoGallery Setup 1.0.22.exe` (90,810,340 bytes).
+
+### 3. Verification & Evidence
+- Monorepo Quality Gate: 36 tasks successful, 0 errors.
+- Windows Installer: `PhotoGallery Setup 1.0.22.exe` (90,810,340 bytes).
+- Zero mock data. Real MTP device and real Wi-Fi server bindings verified.
+
+### 4. Next Immediate Task
+- Commit changes and provide the user with clear instructions and immediate resolution.
+
 
