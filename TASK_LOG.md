@@ -552,3 +552,36 @@ Verify and deliver compiled release binaries for both Windows Desktop (`.exe`) a
 
 
 
+
+---
+
+## [TASK-017] — OriginOS Dual-Platform Production Release & Automated CI/CD Delivery
+- **Timestamp:** 2026-11-09T12:28:00+05:30
+- **Author:** Lead AI Software Architect & Senior Systems Engineer
+- **Status:** COMPLETED
+
+### 1. Scope & Objective
+Build production release binaries for both Windows Desktop (`.exe` NSIS Installer) and Android Mobile (`.apk` Universal Package) featuring the OriginOS Ocean design system, real MediaStore photo/video scanning, real SyncFlow HTTP/UDP interconnect, and custom squircle app icons. Automatically publish these release assets and cryptographic checksums to the public release repository [`rajendransarangan365/gallery-app-release`](https://github.com/rajendransarangan365/gallery-app-release).
+
+### 2. Actions Performed
+1. Resolved CI/CD pnpm version divergence by pinning `pnpm@9.15.4` across root `package.json`, `apps/windows/package.json`, and `.github/workflows/release-to-public.yml`.
+2. Created `.gitignore` exception `!apps/windows/build/` to ensure multi-resolution Windows icons (`icon.ico`, `icon.png`) are properly tracked in git and available to GitHub Actions runners.
+3. Added `CSC_IDENTITY_AUTO_DISCOVERY: false` to the Windows packaging workflow to prevent code signing timeouts on CI runners.
+4. Built and validated the Windows NSIS Installer locally (`PhotoGallery Setup 0.1.0-alpha.exe`, 90.79 MB).
+5. Created and pushed git release tag `v1.0.14` to remote origin.
+6. Monitored automated dual-repo GitHub Actions workflow run `42575541456`:
+   - Job 1 (`Lint, Typecheck & Unit Tests`): **Passed** (20/20 test suites, 22/22 TypeScript packages).
+   - Job 2 (`Build Windows Desktop Installer`): **Passed** (Packaged NSIS installer with OriginOS squircle icon).
+   - Job 3 (`Build Android APK`): **Passed** (Compiled universal APK with native MediaStore module and OriginOS mipmap assets).
+   - Job 4 (`Publish Artifacts to Public Repository`): **Passed** (Generated `SHA256SUMS.txt`, compiled release notes, and published release).
+7. Verified live release assets on `rajendransarangan365/gallery-app-release/releases/tag/v1.0.14`.
+
+### 3. Verification & Evidence
+- Public Release URL: `https://github.com/rajendransarangan365/gallery-app-release/releases/tag/v1.0.14`
+- Windows Installer: `PhotoGallery.Setup.0.1.0-alpha.exe` (86.59 MB, SHA-256: `36f63f4c873d353177e2ad2feb696aff2b30f5d1531d583fe1b5e58386ebf1fd`)
+- Android Release APK: `app-release.apk` (54.93 MB, SHA-256: `0f9b013da35e3b2e55d790ccd813d83c255f630c69bed862dfc9842f0344cbd0`)
+- Checksum Manifest: `SHA256SUMS.txt` live on release tag.
+- Zero mock data in production builds. Real file reading from Android MediaStore and Windows filesystem.
+
+### 4. Next Immediate Task
+- Provide direct, one-click download URLs and installation instructions for both Windows Desktop and Android Mobile to the user.
